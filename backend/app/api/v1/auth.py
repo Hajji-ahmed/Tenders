@@ -11,7 +11,9 @@ from app.schemas.auth import LoginIn, UserOut
 from app.services import auth as auth_service
 
 router = APIRouter(prefix="/auth")
-limiter = Limiter(key_func=get_remote_address)
+# Désactivé en test (compteur en mémoire partagé entre tous les tests) ; réactivé ponctuellement
+# par les tests de sécurité de la Phase 12 via `limiter.enabled = True`.
+limiter = Limiter(key_func=get_remote_address, enabled=not get_settings().is_test)
 
 
 @router.post("/login", response_model=UserOut)

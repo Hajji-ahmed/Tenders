@@ -67,3 +67,19 @@ def user(db):
 def auth_client(client, user) -> TestClient:
     client.post("/api/v1/auth/login", json={"email": user.email, "password": "Password123!"})
     return client
+
+
+@pytest.fixture
+def run_jobs_inline(db, monkeypatch):
+    """Exécute immédiatement les jobs enfilés, avec la session de test (pas de Celery/Redis).
+
+    `run_job` commite : avec la session en `create_savepoint`, cela ne commite que le savepoint ;
+    la transaction externe est toujours annulée à la fin du test.
+    """
+    from app.services.jobs import JobService
+    from app.workers.tracking import REGISTRY, run_job
+
+    def _dispatch(job, kwargs):
+        run_job(db, job, REGISTRY[job.type], **kwargs)
+
+    monkeypatch.setattr(JobService, "dispatcher", staticmethod(_dispatch))
