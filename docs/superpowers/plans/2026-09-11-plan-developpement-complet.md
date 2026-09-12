@@ -392,6 +392,16 @@ git commit -m "chore: init repo, docs structure, data model and API spec"
 
 # PHASE 1 — Fondations (S2)
 
+> **Écarts constatés à l'exécution (12/09/2026) — à respecter dans les phases suivantes :**
+> - **Next.js 16** installé (pas 15) : `src/proxy.ts` remplace `middleware.ts` (même API, export `proxy`). shadcn/ui v4 style `base-nova` : composants sur Base UI, `import { cn } from "cn"` (pas de `lib/utils.ts`), pas de composant `form` (react-hook-form + `Label`/`Input` directement).
+> - **PostgreSQL Docker exposé sur le port hôte 5433** (un PostgreSQL natif Windows occupe le 5432). En CI, 5432.
+> - Images MinIO : `quay.io/minio/minio` et `quay.io/minio/mc` (Docker Hub `minio/*` inaccessible).
+> - `Settings` lit `../.env` (racine) puis `backend/.env`.
+> - Vitest en `pool: "threads"` (le pool `forks` expire sous Windows avec des espaces dans le chemin).
+> - Le rate-limit du login est désactivé quand `APP_ENV=test` (`limiter.enabled`), à réactiver dans le test de la Tâche 12.1.
+> - Enums Python : `enum.StrEnum` (ruff UP042) au lieu de `(str, enum.Enum)`.
+> - Les modules de tâches Celery sont importés dans `app/workers/tasks/__init__.py` (remplit `REGISTRY` hors worker).
+
 ### Task 1.1 : Squelette backend FastAPI + outillage
 
 **Files:**
