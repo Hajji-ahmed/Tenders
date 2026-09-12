@@ -79,6 +79,15 @@ services:
     depends_on: [worker]
     command: celery -A app.workers.celery_app:celery_app beat -l info
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ../infrastructure/docker/frontend.Dockerfile
+    environment:
+      API_URL: http://api:8000
+    ports: ["3000:3000"]
+    depends_on: [api]
+
 volumes:
   pgdata:
   miniodata:
