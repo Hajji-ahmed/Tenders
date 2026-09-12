@@ -392,6 +392,29 @@ git commit -m "chore: init repo, docs structure, data model and API spec"
 
 # PHASE 1 — Fondations (S2)
 
+> **Écarts constatés à l'exécution (12/09/2026) — à respecter dans les phases suivantes :**
+> - **Next.js 16** installé (pas 15) : `src/proxy.ts` remplace `middleware.ts` (même API, export `proxy`). shadcn/ui v4 style `base-nova` : composants sur Base UI, `import { cn } from "cn"` (pas de `lib/utils.ts`), pas de composant `form` (react-hook-form + `Label`/`Input` directement).
+> - **PostgreSQL Docker exposé sur le port hôte 5433** (un PostgreSQL natif Windows occupe le 5432). En CI, 5432.
+> - Images MinIO : `quay.io/minio/minio` et `quay.io/minio/mc` (Docker Hub `minio/*` inaccessible).
+> - `Settings` lit `../.env` (racine) puis `backend/.env`.
+> - Vitest en `pool: "threads"` (le pool `forks` expire sous Windows avec des espaces dans le chemin).
+> - Le rate-limit du login est désactivé quand `APP_ENV=test` (`limiter.enabled`), à réactiver dans le test de la Tâche 12.1.
+> - Enums Python : `enum.StrEnum` (ruff UP042) au lieu de `(str, enum.Enum)`.
+> - Les modules de tâches Celery sont importés dans `app/workers/tasks/__init__.py` (remplit `REGISTRY`). **Règle d'import : les tâches importent les services, jamais l'inverse** — aucun service n'importe `app.workers.tasks` (import circulaire garanti dès la Phase 6). Le test `test_services_do_not_import_tasks` le vérifie.
+> - **En test, `JobService.dispatcher` est un no-op** (le job reste `pending`) tant que la fixture `run_jobs_inline` n'est pas demandée. Le setting `CELERY_TASK_ALWAYS_EAGER` a été supprimé (inopérant avec `send_task`). Un échec de dispatch (Redis absent) marque le job `failed` et renvoie 503 `service_unavailable`.
+> - **Fournisseurs injectables** : dans les services et les tâches, écrire `from app.core import deps` puis `deps.get_storage()` (idem futurs `deps.get_llm()`, `deps.get_crawler()`…) — jamais `from app.core.deps import get_storage`. Les tests injectent via `deps._storage_override` (fixture `storage`) ; suivre le même motif `_<nom>_override` pour chaque nouveau fournisseur.
+> - Pas de handler `ValueError` global : lever `app.core.errors.ValidationError` (422) pour les validations métier (`validate_upload` en 2.3, `LocalStorage` reste en `ValueError` = 500). `RequestValidationError` (422) et `RateLimitExceeded` (429) suivent l'enveloppe `{"error": {...}}`.
+> - Un 401 supprime le cookie (`Set-Cookie … Max-Age=0`) — indispensable pour ne pas boucler `/login ⇄ /dashboard` avec `proxy.ts`. Côté front, `api()` appelle `/auth/logout` avant de recharger sur `/login`.
+> - Le rate-limit du login est keyé sur `X-Forwarded-For` (relais Next.js) et compté dans Redis hors test ; uvicorn tourne avec `--proxy-headers`.
+> - `Settings` refuse en `staging|prod` : clé d'exemple, `COOKIE_SECURE=false`, stockage non-https (`_deployed_guards`). Swagger n'est servi qu'en `dev`.
+> - `decode_access_token` exige `exp/iat/sub` et rejette une durée de vie > `access_token_minutes` ; `get_current_user` convertit `sub` en `UUID` (sinon 401, pas 500).
+> - Moteur SQLAlchemy avec `json_serializer=default=str` (UUID/datetime dans les colonnes JSON) — `make_engine(url)` partagé par l'app et les tests. `run_job` commite dans le `try` : un commit raté = job `failed`, jamais `running` orphelin.
+> - `conftest` **force** `DATABASE_URL` à la valeur de test et refuse tout `drop_all` sur une base dont le nom ne finit pas par `_test`.
+> - Frontend : `<Providers>` (QueryClient + Toaster) est monté dans `app/layout.tsx` (racine) car la page login utilise `useLogin()` ; l'en-tête est dans `components/layout/Header.tsx`. `retry` uniquement sur 5xx. Le matcher de `proxy.ts` exclut les fichiers statiques. Le rewrite ne relaie que `/api/v1/*`.
+> - **`API_URL` est un argument de build du frontend** (rewrites figés par `next build`) : en 12.5, une image par environnement avec `--build-arg API_URL=…`, ou remplacer le rewrite par un Route Handler `app/api/[...path]/route.ts` lisant `process.env.API_URL` au runtime.
+> - CLI : `create-user --email` et `set-password --email` lisent le mot de passe depuis `TENDER_PASSWORD` ou une saisie masquée — jamais en argument (historique shell, allowlists d'outils).
+> - Docker dev : ports liés à `127.0.0.1`, identifiants lus depuis `.env` (`POSTGRES_*`, `MINIO_ROOT_*`), conteneurs non-root (`app` / `node`), `.dockerignore` dans `backend/` et `frontend/`, `uv` épinglé.
+
 ### Task 1.1 : Squelette backend FastAPI + outillage
 
 **Files:**

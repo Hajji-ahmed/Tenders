@@ -31,3 +31,7 @@ backups/
 Thumbs.db
 .idea/
 .vscode/
+
+# Outillage local Claude Code (permissions propres a la machine)
+.claude/
+celerybeat-schedule*
