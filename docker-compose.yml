@@ -18,7 +18,8 @@ services:
       POSTGRES_USER: tender
       POSTGRES_PASSWORD: tender
       POSTGRES_DB: tender
-    ports: ["5432:5432"]
+    # Port hôte 5433 : un PostgreSQL natif Windows occupe souvent le 5432.
+    ports: ["5433:5432"]
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./infrastructure/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro

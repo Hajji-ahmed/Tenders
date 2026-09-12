@@ -5,17 +5,50 @@ os.environ.setdefault("APP_ENV", "test")
 os.environ.setdefault("SECRET_KEY", "test-secret-key-test-secret-key-0123456789")
 os.environ.setdefault(
     "DATABASE_URL",
-    os.environ.get("TEST_DATABASE_URL", "postgresql+psycopg://tender:tender@localhost:5432/tender_test"),
+    os.environ.get("TEST_DATABASE_URL", "postgresql+psycopg://tender:tender@localhost:5433/tender_test"),
 )
 os.environ.setdefault("STORAGE_BACKEND", "local")
 os.environ.setdefault("CELERY_TASK_ALWAYS_EAGER", "true")
 
 import pytest  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
+from sqlalchemy import create_engine  # noqa: E402
+from sqlalchemy.orm import Session  # noqa: E402
 
+from app.core.db import get_db  # noqa: E402
 from app.main import create_app  # noqa: E402
+from app.models import Base  # noqa: E402
+
+
+@pytest.fixture(scope="session")
+def engine():
+    """Schéma recréé une fois par session de test sur la base tender_test."""
+    eng = create_engine(os.environ["DATABASE_URL"])
+    Base.metadata.drop_all(eng)
+    Base.metadata.create_all(eng)
+    yield eng
+    eng.dispose()
 
 
 @pytest.fixture
-def client() -> TestClient:
-    return TestClient(create_app())
+def db(engine):
+    """Session dans une transaction annulée à la fin de chaque test : base toujours propre."""
+    conn = engine.connect()
+    trans = conn.begin()
+    session = Session(bind=conn, join_transaction_mode="create_savepoint", expire_on_commit=False)
+    yield session
+    session.close()
+    trans.rollback()
+    conn.close()
+
+
+@pytest.fixture
+def app(db):
+    application = create_app()
+    application.dependency_overrides[get_db] = lambda: db
+    return application
+
+
+@pytest.fixture
+def client(app) -> TestClient:
+    return TestClient(app)

@@ -6,7 +6,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    # Le .env de la racine du dépôt est la référence ; un backend/.env local peut le surcharger.
+    model_config = SettingsConfigDict(env_file=("../.env", ".env"), extra="ignore")
 
     app_env: Literal["dev", "test", "staging", "prod"] = "dev"
     secret_key: str = Field(min_length=32)
