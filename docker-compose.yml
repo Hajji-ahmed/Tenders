@@ -83,8 +83,8 @@ services:
     build:
       context: ./frontend
       dockerfile: ../infrastructure/docker/frontend.Dockerfile
-    environment:
-      API_URL: http://api:8000
+      args:
+        API_URL: http://api:8000   # figé au build (rewrites Next.js)
     ports: ["3000:3000"]
     depends_on: [api]
 
