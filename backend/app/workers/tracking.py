@@ -3,6 +3,8 @@
 Une tâche métier est une simple fonction `fn(db, job, **kwargs) -> dict`. Le décorateur
 `@tracked_task("type")` l'enregistre auprès de Celery et gère le cycle de vie du `Job`.
 En test, `task.run_inline(db, job, **kwargs)` exécute la fonction sans Celery.
+
+Règle d'import : les tâches importent les services, jamais l'inverse (sinon import circulaire).
 """
 
 from collections.abc import Callable
@@ -31,15 +33,26 @@ def run_job(db: Session, job: Job, fn: Callable, **kwargs) -> None:
         job.status = JobStatus.done
         job.result = result
         job.progress = 100
+        job.finished_at = datetime.now(UTC)
+        db.commit()  # dans le try : un résultat non sérialisable ou une erreur DB = échec du job
         log.info("job.done", type=job.type, job_id=str(job.id), duration_ms=_ms_since(started))
     except Exception as e:  # noqa: BLE001 — tout échec doit être journalisé, jamais avalé
         db.rollback()
-        job.status = JobStatus.failed
-        job.error = f"{type(e).__name__}: {e}"
         log.exception("job.failed", type=job.type, job_id=str(job.id), duration_ms=_ms_since(started))
-    finally:
-        job.finished_at = datetime.now(UTC)
+        _mark_failed(db, job, f"{type(e).__name__}: {e}")
+
+
+def _mark_failed(db: Session, job: Job, error: str) -> None:
+    job.status = JobStatus.failed
+    job.error = error[:4000]
+    job.result = None
+    job.finished_at = datetime.now(UTC)
+    try:
         db.commit()
+    except Exception:  # noqa: BLE001 — dernier recours : ne jamais laisser un job en `running`
+        db.rollback()
+        log.exception("job.mark_failed_error", type=job.type, job_id=str(job.id))
+        raise
 
 
 def set_progress(db: Session, job: Job, progress: int, message: str | None = None) -> None:

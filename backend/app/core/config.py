@@ -1,8 +1,10 @@
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+PLACEHOLDER_SECRET_MARKERS = ("change-me", "changeme", "secret-key-test", "ci-secret-key")
 
 
 class Settings(BaseSettings):
@@ -11,7 +13,7 @@ class Settings(BaseSettings):
 
     app_env: Literal["dev", "test", "staging", "prod"] = "dev"
     secret_key: str = Field(min_length=32)
-    database_url: str = "postgresql+psycopg://tender:tender@localhost:5432/tender"
+    database_url: str = "postgresql+psycopg://tender:tender@localhost:5433/tender"
     redis_url: str = "redis://localhost:6379/0"
 
     storage_backend: Literal["s3", "local"] = "s3"
@@ -33,13 +35,34 @@ class Settings(BaseSettings):
 
     access_token_minutes: int = 60 * 12
     cookie_secure: bool = False
+    # IP(s) autorisées à transmettre X-Forwarded-For (le relais Next.js). "*" = toutes (réseau Docker fermé).
+    trusted_proxy_ips: str = "*"
     max_upload_mb: int = 50
     relevance_threshold: int = 70
-    celery_task_always_eager: bool = False
 
     @property
     def is_test(self) -> bool:
         return self.app_env == "test"
+
+    @property
+    def is_deployed(self) -> bool:
+        return self.app_env in ("staging", "prod")
+
+    @model_validator(mode="after")
+    def _deployed_guards(self) -> "Settings":
+        """En staging/prod, refuser une configuration de développement (clé d'exemple, cookie non sûr)."""
+        if not self.is_deployed:
+            return self
+        problems: list[str] = []
+        if any(marker in self.secret_key.lower() for marker in PLACEHOLDER_SECRET_MARKERS):
+            problems.append("SECRET_KEY est une valeur d'exemple (générer : openssl rand -hex 32)")
+        if not self.cookie_secure:
+            problems.append("COOKIE_SECURE doit valoir true (HTTPS obligatoire)")
+        if self.storage_backend == "s3" and not self.storage_endpoint.startswith("https://"):
+            problems.append("STORAGE_ENDPOINT doit être en https")
+        if problems:
+            raise ValueError(f"Configuration {self.app_env} invalide : " + " ; ".join(problems))
+        return self
 
 
 @lru_cache

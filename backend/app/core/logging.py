@@ -1,4 +1,5 @@
 import logging
+import re
 import uuid
 from contextvars import ContextVar
 
@@ -6,6 +7,9 @@ import structlog
 from starlette.middleware.base import BaseHTTPMiddleware
 
 request_id_var: ContextVar[str] = ContextVar("request_id", default="-")
+# Un X-Request-ID fourni par le client n'est repris que s'il est court et sans caractères spéciaux
+# (il est injecté dans chaque ligne de log).
+_REQUEST_ID_RE = re.compile(r"^[A-Za-z0-9._-]{1,64}$")
 
 
 def _add_request_id(_logger, _method, event_dict):
@@ -37,7 +41,8 @@ class RequestIdMiddleware(BaseHTTPMiddleware):
     """Propage ou génère un X-Request-ID, présent dans chaque log et chaque réponse."""
 
     async def dispatch(self, request, call_next):
-        rid = request.headers.get("X-Request-ID") or uuid.uuid4().hex[:12]
+        incoming = request.headers.get("X-Request-ID", "")
+        rid = incoming if _REQUEST_ID_RE.match(incoming) else uuid.uuid4().hex[:12]
         token = request_id_var.set(rid)
         try:
             response = await call_next(request)

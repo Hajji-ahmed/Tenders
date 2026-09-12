@@ -21,6 +21,16 @@ describe("LoginForm", () => {
     expect(screen.getByRole("alert")).toHaveTextContent("Identifiants invalides");
   });
 
+  it("marks invalid fields for assistive technologies", async () => {
+    render(<LoginForm onSubmit={vi.fn()} />);
+    await userEvent.type(screen.getByLabelText(/email/i), "pas-un-email");
+    await userEvent.click(screen.getByRole("button", { name: /se connecter/i }));
+    const email = screen.getByLabelText(/email/i);
+    expect(email).toHaveAttribute("aria-invalid", "true");
+    expect(email).toHaveAttribute("aria-describedby", "email-error");
+    expect(screen.getByText("Adresse email invalide")).toHaveAttribute("id", "email-error");
+  });
+
   it("does not submit an invalid email", async () => {
     const onSubmit = vi.fn();
     render(<LoginForm onSubmit={onSubmit} />);

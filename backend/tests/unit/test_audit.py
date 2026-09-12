@@ -23,3 +23,11 @@ def test_request_id_header(client):
     assert r.headers["X-Request-ID"] == "abc123"
     r2 = client.get("/api/v1/health")
     assert len(r2.headers["X-Request-ID"]) >= 8
+
+
+def test_request_id_from_client_is_sanitized(client):
+    """Un identifiant trop long ou avec des caractères spéciaux (injection de logs) est remplacé."""
+    r = client.get("/api/v1/health", headers={"X-Request-ID": "A" * 5000})
+    assert len(r.headers["X-Request-ID"]) <= 64
+    r2 = client.get("/api/v1/health", headers={"X-Request-ID": "abc\tdef"})
+    assert "\t" not in r2.headers["X-Request-ID"]

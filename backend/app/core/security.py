@@ -1,3 +1,4 @@
+import secrets
 from datetime import UTC, datetime, timedelta
 
 import jwt
@@ -7,6 +8,10 @@ from argon2.exceptions import VerifyMismatchError
 from app.core.config import get_settings
 
 _ph = PasswordHasher()
+
+# Hash « leurre » vérifié quand l'utilisateur n'existe pas : le temps de réponse du login est le même
+# que le compte existe ou non (pas d'énumération par timing).
+DUMMY_PASSWORD_HASH = _ph.hash(secrets.token_urlsafe(32))
 
 
 def hash_password(password: str) -> str:
@@ -28,6 +33,12 @@ def create_access_token(subject: str) -> str:
 
 
 def decode_access_token(token: str) -> str:
-    """Renvoie le sujet du token ; lève jwt.PyJWTError si invalide ou expiré."""
-    payload = jwt.decode(token, get_settings().secret_key, algorithms=["HS256"])
+    """Renvoie le sujet du token ; lève jwt.PyJWTError si invalide, expiré, ou de durée anormale."""
+    s = get_settings()
+    payload = jwt.decode(
+        token, s.secret_key, algorithms=["HS256"], options={"require": ["exp", "iat", "sub"]}
+    )
+    lifetime = int(payload["exp"]) - int(payload["iat"])
+    if lifetime > s.access_token_minutes * 60:
+        raise jwt.InvalidTokenError("durée de vie du token supérieure à la politique")
     return str(payload["sub"])

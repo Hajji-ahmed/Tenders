@@ -31,7 +31,6 @@ jobs:
       DATABASE_URL: postgresql+psycopg://tender:tender@localhost:5432/tender_test
       REDIS_URL: redis://localhost:6379/0
       STORAGE_BACKEND: local
-      CELERY_TASK_ALWAYS_EAGER: "true"
     defaults:
       run:
         working-directory: backend

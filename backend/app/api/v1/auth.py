@@ -11,9 +11,31 @@ from app.schemas.auth import LoginIn, UserOut
 from app.services import auth as auth_service
 
 router = APIRouter(prefix="/auth")
-# Désactivé en test (compteur en mémoire partagé entre tous les tests) ; réactivé ponctuellement
-# par les tests de sécurité de la Phase 12 via `limiter.enabled = True`.
-limiter = Limiter(key_func=get_remote_address, enabled=not get_settings().is_test)
+
+
+def client_ip(request: Request) -> str:
+    """IP réelle du client derrière le relais Next.js (X-Forwarded-For), sinon IP du pair TCP.
+
+    Sans cela, toutes les requêtes relayées partagent l'IP du serveur Next.js et un visiteur
+    anonyme pourrait épuiser le quota de connexion du seul utilisateur.
+    """
+    s = get_settings()
+    peer = get_remote_address(request)
+    forwarded = request.headers.get("x-forwarded-for", "")
+    trusted = s.trusted_proxy_ips == "*" or peer in {ip.strip() for ip in s.trusted_proxy_ips.split(",")}
+    if forwarded and trusted:
+        return forwarded.split(",")[0].strip() or peer
+    return peer
+
+
+_settings = get_settings()
+# Désactivé en test (compteur partagé entre tous les tests) ; les tests de sécurité l'activent
+# ponctuellement via `limiter.enabled = True`. Compteur dans Redis hors test : partagé entre réplicas.
+limiter = Limiter(
+    key_func=client_ip,
+    enabled=not _settings.is_test,
+    storage_uri=None if _settings.is_test else _settings.redis_url,
+)
 
 
 @router.post("/login", response_model=UserOut)
@@ -34,7 +56,7 @@ def login(request: Request, response: Response, body: LoginIn, db: Session = Dep
 
 
 @router.post("/logout", status_code=204)
-def logout(response: Response) -> Response:
+def logout() -> Response:
     response = Response(status_code=204)
     response.delete_cookie(COOKIE_NAME, path="/")
     return response

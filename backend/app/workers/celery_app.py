@@ -8,7 +8,7 @@ celery_app = Celery(
     "tender_ai",
     broker=_settings.redis_url,
     backend=_settings.redis_url,
-    # Chaque phase ajoute ici ses modules de tâches.
+    # Chaque phase ajoute ici ses modules de tâches (côté worker ; les tests importent app.workers.tasks).
     include=["app.workers.tasks.demo"],
 )
 
@@ -18,6 +18,14 @@ celery_app.conf.update(
     worker_prefetch_multiplier=1,
     timezone="UTC",
     task_time_limit=60 * 30,
-    task_always_eager=_settings.celery_task_always_eager,
+    # Échec rapide si Redis est injoignable : l'API ne doit pas rester bloquée sur un enqueue.
+    broker_connection_timeout=2,
+    broker_connection_retry_on_startup=True,
+    task_publish_retry_policy={
+        "max_retries": 2,
+        "interval_start": 0,
+        "interval_step": 0.5,
+        "interval_max": 1,
+    },
     beat_schedule={},  # rempli par les phases 2, 4 et 11
 )

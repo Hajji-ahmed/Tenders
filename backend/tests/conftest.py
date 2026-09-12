@@ -1,23 +1,23 @@
 import os
 
 # Variables d'environnement de test — posées AVANT tout import de l'application.
-os.environ.setdefault("APP_ENV", "test")
-os.environ.setdefault("SECRET_KEY", "test-secret-key-test-secret-key-0123456789")
-os.environ.setdefault(
-    "DATABASE_URL",
-    os.environ.get("TEST_DATABASE_URL", "postgresql+psycopg://tender:tender@localhost:5433/tender_test"),
+# DATABASE_URL est FORCÉE (pas setdefault) : une URL de dev présente dans l'environnement ne doit
+# jamais atteindre la fixture `engine`, qui fait drop_all.
+os.environ["APP_ENV"] = "test"
+os.environ["DATABASE_URL"] = os.environ.get(
+    "TEST_DATABASE_URL", "postgresql+psycopg://tender:tender@localhost:5433/tender_test"
 )
+os.environ.setdefault("SECRET_KEY", "test-secret-key-test-secret-key-0123456789")
 os.environ.setdefault("STORAGE_BACKEND", "local")
-os.environ.setdefault("CELERY_TASK_ALWAYS_EAGER", "true")
 
 import pytest  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
-from sqlalchemy import create_engine  # noqa: E402
+from sqlalchemy.engine import make_url  # noqa: E402
 from sqlalchemy.orm import Session  # noqa: E402
 
+import app.core.deps as deps  # noqa: E402
 from app.connectors.storage.local import LocalStorage  # noqa: E402
-from app.core.db import get_db  # noqa: E402
-from app.core.deps import get_storage  # noqa: E402
+from app.core.db import get_db, make_engine  # noqa: E402
 from app.core.security import hash_password  # noqa: E402
 from app.main import create_app  # noqa: E402
 from app.models import Base, User  # noqa: E402
@@ -25,8 +25,10 @@ from app.models import Base, User  # noqa: E402
 
 @pytest.fixture(scope="session")
 def engine():
-    """Schéma recréé une fois par session de test sur la base tender_test."""
-    eng = create_engine(os.environ["DATABASE_URL"])
+    """Schéma recréé une fois par session de test — uniquement sur une base dont le nom finit par _test."""
+    url = os.environ["DATABASE_URL"]
+    assert (make_url(url).database or "").endswith("_test"), f"Refus de drop_all hors base *_test : {url}"
+    eng = make_engine(url)
     Base.metadata.drop_all(eng)
     Base.metadata.create_all(eng)
     yield eng
@@ -47,11 +49,9 @@ def db(engine):
 
 @pytest.fixture
 def storage(tmp_path, monkeypatch):
-    """Stockage local isolé par test ; injecté à la fois dans FastAPI et dans les workers."""
-    import app.core.deps as deps
-
+    """Stockage local isolé par test, vu par FastAPI comme par les workers (via deps._storage_override)."""
     st = LocalStorage(tmp_path / "storage")
-    monkeypatch.setattr(deps, "get_storage", lambda: st)
+    monkeypatch.setattr(deps, "_storage_override", st)
     return st
 
 
@@ -59,7 +59,6 @@ def storage(tmp_path, monkeypatch):
 def app(db, storage):
     application = create_app()
     application.dependency_overrides[get_db] = lambda: db
-    application.dependency_overrides[get_storage] = lambda: storage
     return application
 
 
@@ -89,6 +88,7 @@ def run_jobs_inline(db, monkeypatch):
     `run_job` commite : avec la session en `create_savepoint`, cela ne commite que le savepoint ;
     la transaction externe est toujours annulée à la fin du test.
     """
+    import app.workers.tasks  # noqa: F401 — remplit REGISTRY (les services n'importent jamais les tâches)
     from app.services.jobs import JobService
     from app.workers.tracking import REGISTRY, run_job
 

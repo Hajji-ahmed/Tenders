@@ -24,6 +24,8 @@ export function useLogout() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: () => api<void>("/auth/logout", { method: "POST" }),
-    onSuccess: () => qc.clear(),
+    // Pas de qc.clear() : cela relancerait /auth/me (→ 401 → rechargement) pendant que le Header
+    // est encore monté. On fige la valeur ; le cache est vidé au prochain login (setQueryData).
+    onSuccess: () => qc.setQueryData(authKeys.me, null),
   });
 }

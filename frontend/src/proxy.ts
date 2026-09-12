@@ -1,7 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 // Vérification optimiste : présence du cookie de session. La validité réelle du token est
-// contrôlée par FastAPI à chaque appel API (401 ⇒ redirection côté client).
+// contrôlée par FastAPI à chaque appel API ; un 401 efface le cookie côté serveur, ce qui
+// évite toute boucle /login ⇄ /dashboard.
 export function proxy(req: NextRequest) {
   const hasToken = req.cookies.has("access_token");
   const { pathname } = req.nextUrl;
@@ -14,5 +15,6 @@ export function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next|favicon.ico).*)"],
+  // Exclut l'API, les internals Next et les fichiers statiques (images, polices…) de public/.
+  matcher: ["/((?!api|_next|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2?|txt|xml)$).*)"],
 };
