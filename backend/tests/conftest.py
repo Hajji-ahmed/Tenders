@@ -16,8 +16,9 @@ from sqlalchemy import create_engine  # noqa: E402
 from sqlalchemy.orm import Session  # noqa: E402
 
 from app.core.db import get_db  # noqa: E402
+from app.core.security import hash_password  # noqa: E402
 from app.main import create_app  # noqa: E402
-from app.models import Base  # noqa: E402
+from app.models import Base, User  # noqa: E402
 
 
 @pytest.fixture(scope="session")
@@ -52,3 +53,17 @@ def app(db):
 @pytest.fixture
 def client(app) -> TestClient:
     return TestClient(app)
+
+
+@pytest.fixture
+def user(db):
+    u = User(email="admin@example.com", password_hash=hash_password("Password123!"))
+    db.add(u)
+    db.flush()
+    return u
+
+
+@pytest.fixture
+def auth_client(client, user) -> TestClient:
+    client.post("/api/v1/auth/login", json={"email": user.email, "password": "Password123!"})
+    return client
