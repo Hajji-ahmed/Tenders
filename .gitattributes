@@ -1,0 +1,6 @@
+# Normaliser les fins de ligne en LF (Docker et CI tournent sous Linux)
+* text=auto eol=lf
+*.pdf binary
+*.png binary
+*.docx binary
+*.xlsx binary
