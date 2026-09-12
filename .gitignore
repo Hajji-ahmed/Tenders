@@ -34,3 +34,4 @@ Thumbs.db
 
 # Outillage local Claude Code (permissions propres a la machine)
 .claude/
+celerybeat-schedule*
