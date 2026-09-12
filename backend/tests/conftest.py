@@ -15,7 +15,9 @@ from fastapi.testclient import TestClient  # noqa: E402
 from sqlalchemy import create_engine  # noqa: E402
 from sqlalchemy.orm import Session  # noqa: E402
 
+from app.connectors.storage.local import LocalStorage  # noqa: E402
 from app.core.db import get_db  # noqa: E402
+from app.core.deps import get_storage  # noqa: E402
 from app.core.security import hash_password  # noqa: E402
 from app.main import create_app  # noqa: E402
 from app.models import Base, User  # noqa: E402
@@ -44,9 +46,20 @@ def db(engine):
 
 
 @pytest.fixture
-def app(db):
+def storage(tmp_path, monkeypatch):
+    """Stockage local isolé par test ; injecté à la fois dans FastAPI et dans les workers."""
+    import app.core.deps as deps
+
+    st = LocalStorage(tmp_path / "storage")
+    monkeypatch.setattr(deps, "get_storage", lambda: st)
+    return st
+
+
+@pytest.fixture
+def app(db, storage):
     application = create_app()
     application.dependency_overrides[get_db] = lambda: db
+    application.dependency_overrides[get_storage] = lambda: storage
     return application
 
 
