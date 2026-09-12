@@ -28,6 +28,8 @@ jobs:
     env:
       APP_ENV: test
       SECRET_KEY: ci-secret-key-ci-secret-key-0123456789
+      # conftest.py force DATABASE_URL := TEST_DATABASE_URL (jamais de drop_all sur une base de dev).
+      TEST_DATABASE_URL: postgresql+psycopg://tender:tender@localhost:5432/tender_test
       DATABASE_URL: postgresql+psycopg://tender:tender@localhost:5432/tender_test
       REDIS_URL: redis://localhost:6379/0
       STORAGE_BACKEND: local
