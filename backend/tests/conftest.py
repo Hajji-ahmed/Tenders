@@ -12,6 +12,7 @@ os.environ.setdefault("STORAGE_BACKEND", "local")
 
 import pytest  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
+from sqlalchemy import text  # noqa: E402
 from sqlalchemy.engine import make_url  # noqa: E402
 from sqlalchemy.orm import Session  # noqa: E402
 
@@ -22,16 +23,26 @@ from app.core.security import hash_password  # noqa: E402
 from app.main import create_app  # noqa: E402
 from app.models import Base, User  # noqa: E402
 
+TEST_DB_LOCK_ID = 424242  # verrou consultatif : une seule session pytest à la fois sur tender_test
+
 
 @pytest.fixture(scope="session")
 def engine():
-    """Schéma recréé une fois par session de test — uniquement sur une base dont le nom finit par _test."""
+    """Schéma recréé une fois par session de test — uniquement sur une base dont le nom finit par _test.
+
+    Le verrou PostgreSQL est tenu pendant toute la session : deux runs concurrents (deux terminaux,
+    un agent, la CI locale…) se sérialisent au lieu de se détruire mutuellement les tables.
+    """
     url = os.environ["DATABASE_URL"]
     assert (make_url(url).database or "").endswith("_test"), f"Refus de drop_all hors base *_test : {url}"
     eng = make_engine(url)
+    lock_conn = eng.connect()
+    lock_conn.execute(text("SELECT pg_advisory_lock(:id)"), {"id": TEST_DB_LOCK_ID})
     Base.metadata.drop_all(eng)
     Base.metadata.create_all(eng)
     yield eng
+    lock_conn.execute(text("SELECT pg_advisory_unlock(:id)"), {"id": TEST_DB_LOCK_ID})
+    lock_conn.close()
     eng.dispose()
 
 
