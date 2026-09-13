@@ -10,7 +10,7 @@ export type StatusStyle = { label: string; variant: BadgeVariant };
 /** Statut technique des jobs (types.ts) → badge. */
 export const JOB_STATUS: Record<JobStatus, StatusStyle> = {
   pending: { label: "En attente", variant: "warning-soft" },
-  running: { label: "En cours", variant: "dark" },
+  running: { label: "En cours", variant: "inverse" },
   done: { label: "Terminé", variant: "success" },
   failed: { label: "Échec", variant: "destructive" },
 };
@@ -22,7 +22,7 @@ export const TENDER_STATUS = {
   go: { label: "Go", variant: "success" },
   no_go: { label: "No-Go", variant: "muted" },
   en_preparation: { label: "En préparation", variant: "outline" },
-  soumis: { label: "Déposé", variant: "dark" },
+  soumis: { label: "Déposé", variant: "inverse" },
   gagne: { label: "Gagné", variant: "default" },
   perdu: { label: "Perdu", variant: "destructive" },
   expire: { label: "Expiré", variant: "muted" },

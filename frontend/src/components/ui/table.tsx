@@ -23,15 +23,15 @@ function TableHeader({
   className,
   variant = "default",
   ...props
-}: React.ComponentProps<"thead"> & { variant?: "default" | "dark" }) {
+}: React.ComponentProps<"thead"> & { variant?: "default" | "inverse" }) {
   return (
     <thead
       data-slot="table-header"
       data-variant={variant}
-      // Filet vert 2 px sous l'en-tête dans les deux variantes. `dark` (thead noir) : une seule table par page.
+      // Filet vert 2 px sous l'en-tête dans les deux variantes. `inverse` (thead vert encre) : une seule table par page.
       className={cn(
         "group/thead [&_tr]:border-b-2 [&_tr]:border-brand-green [&_tr]:hover:bg-transparent",
-        variant === "dark" ? "bg-brand-black" : "bg-muted/60",
+        variant === "inverse" ? "bg-brand-green-ink" : "bg-muted/60",
         className
       )}
       {...props}
@@ -54,7 +54,7 @@ function TableFooter({ className, ...props }: React.ComponentProps<"tfoot">) {
     <tfoot
       data-slot="table-footer"
       className={cn(
-        "border-t-2 border-brand-black bg-muted/50 font-medium text-brand-black [&>tr]:last:border-b-0",
+        "border-t-2 border-brand-green bg-muted/50 font-medium text-brand-green-dark [&>tr]:last:border-b-0",
         className
       )}
       {...props}
@@ -80,9 +80,9 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
   return (
     <th
       data-slot="table-head"
-      // Libellés noirs en petites capitales ; sur thead noir : blanc/90, colonne triée (aria-sort) en jaune
+      // Libellés vert foncé en petites capitales ; sur thead vert encre : blanc/90, colonne triée (aria-sort) en jaune
       className={cn(
-        "h-9 px-3 text-left align-middle text-xs font-semibold uppercase tracking-wide whitespace-nowrap text-brand-black aria-[sort]:text-brand-green-dark group-data-[variant=dark]/thead:text-white/90 group-data-[variant=dark]/thead:aria-[sort]:text-brand-yellow [&:has([role=checkbox])]:pr-0",
+        "h-9 px-3 text-left align-middle text-xs font-semibold uppercase tracking-wide whitespace-nowrap text-brand-green-dark aria-[sort]:text-brand-green-ink group-data-[variant=inverse]/thead:text-white/90 group-data-[variant=inverse]/thead:aria-[sort]:text-brand-yellow [&:has([role=checkbox])]:pr-0",
         className
       )}
       {...props}

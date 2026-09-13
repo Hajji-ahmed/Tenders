@@ -61,20 +61,19 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    // Pas de border-r : la sidebar et le Header forment un bandeau noir continu (« L »)
     <aside
-      data-surface="dark"
+      data-surface="inverse"
       className="flex h-screen w-60 shrink-0 flex-col bg-sidebar text-sidebar-foreground"
     >
-      {/* Bloc logo : même hauteur (h-16) et même filet vert 2 px que le Header => ligne verte continue */}
+      {/* Bloc logo sur fond blanc (le logo garde ses couleurs) ; le filet vert 2 px prolonge celui du Header */}
       <Link
         href="/dashboard"
-        className="flex h-16 items-center gap-3 border-b-2 border-brand-green px-4 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sidebar-ring"
+        className="flex h-16 items-center gap-3 border-b-2 border-brand-green bg-white px-4 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-green"
       >
         <LogoMark size={36} priority />
         <span className="flex flex-col leading-tight">
-          <span className="text-sm font-semibold text-white">InnoSustain</span>
-          <span className="text-[11px] text-sidebar-foreground/70">Appels d&apos;offres</span>
+          <span className="text-sm font-semibold text-brand-green-dark">InnoSustain</span>
+          <span className="text-[11px] text-muted-foreground">Appels d&apos;offres</span>
         </span>
       </Link>
 
@@ -82,8 +81,8 @@ export function Sidebar() {
         {NAV.map((group, i) => (
           <div key={i} className="mb-4">
             {group.title && (
-              // Titres de groupe en vert marque : 4,94:1 sur noir (AA). Ne pas réduire l'opacité (/80 = 3,5:1)
-              <p className="px-2.5 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-brand-green">
+              // Titres de groupe : blanc atténué sur vert encre (≥ 4,5:1 à /85)
+              <p className="px-2.5 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-white/85">
                 {group.title}
               </p>
             )}
@@ -99,8 +98,8 @@ export function Sidebar() {
                         "group/nav relative flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm transition-colors outline-none",
                         "focus-visible:ring-2 focus-visible:ring-sidebar-ring",
                         active
-                          ? "bg-white/7 font-medium text-white"
-                          : "text-sidebar-foreground/75 hover:bg-white/5 hover:text-white",
+                          ? "bg-white/15 font-medium text-white"
+                          : "text-white/85 hover:bg-white/10 hover:text-white",
                       )}
                     >
                       {active && (
@@ -114,14 +113,14 @@ export function Sidebar() {
                         className={cn(
                           "size-4 transition-colors",
                           active
-                            ? "text-brand-green"
-                            : "text-sidebar-foreground/55 group-hover/nav:text-brand-green",
+                            ? "text-brand-yellow"
+                            : "text-white/70 group-hover/nav:text-brand-yellow",
                         )}
                       />
                       <span className="truncate">{label}</span>
                       {typeof count === "number" && count > 0 && (
-                        // Compteur JAUNE + texte noir (12,79:1)
-                        <span className="ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-brand-yellow px-1.5 text-[10px] font-semibold tabular-nums text-brand-black">
+                        // Compteur JAUNE + texte brun foncé (10,19:1)
+                        <span className="ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-brand-yellow px-1.5 text-[10px] font-semibold tabular-nums text-brand-yellow-ink">
                           {count > 99 ? "99+" : count}
                         </span>
                       )}
@@ -134,13 +133,13 @@ export function Sidebar() {
         ))}
       </nav>
 
-      {/* Pied : logo miniature CSS + raison sociale. Opacités ≥ /55 (4,79:1) */}
-      <div className="border-t border-sidebar-border px-4 py-3 text-[11px] leading-relaxed">
-        <span className="flex items-center gap-2 text-sidebar-foreground/75">
-          <span aria-hidden className="brand-dot" />
+      {/* Pied : disque jaune + raison sociale, blanc atténué sur vert encre */}
+      <div className="border-t border-white/20 px-4 py-3 text-[11px] leading-relaxed">
+        <span className="flex items-center gap-2 text-white/90">
+          <span aria-hidden className="inline-block size-2.5 shrink-0 rounded-full bg-brand-yellow" />
           Innovative &amp; Sustainable Solutions
         </span>
-        <span className="block pl-[18px] text-sidebar-foreground/55">
+        <span className="block pl-[18px] text-white/70">
           Leading territories decarbonisation in Africa
         </span>
       </div>

@@ -27,37 +27,37 @@ export function Header() {
   }
 
   return (
-    // Noir marque + filet vert 2 px aligné sur celui du bloc logo de la sidebar
-    <header className="flex h-16 shrink-0 items-center justify-between gap-4 border-b-2 border-brand-green bg-brand-black px-6 text-white">
-      <p className="flex min-w-0 items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/60">
+    // Blanc + filet vert 2 px aligné sur celui du bloc logo de la sidebar
+    <header className="flex h-16 shrink-0 items-center justify-between gap-4 border-b-2 border-brand-green bg-white px-6">
+      <p className="flex min-w-0 items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
         <span className="truncate">{current?.group ?? "Appels d'offres"}</span>
         <span aria-hidden className="text-brand-yellow">·</span>
-        <span className="truncate text-white">{current?.label ?? "InnoSustain"}</span>
+        <span className="truncate text-brand-green-dark">{current?.label ?? "InnoSustain"}</span>
       </p>
 
       <div className="flex items-center gap-2">
         <Link
           href="/notifications"
           aria-label="Notifications"
-          className={cn(buttonVariants({ variant: "ghost-dark", size: "icon-sm" }), "relative")}
+          className={cn(buttonVariants({ variant: "ghost", size: "icon-sm" }), "relative text-brand-green-dark")}
         >
           <Bell />
           {/* Quand la query « non lues » existera :
-          <span aria-hidden className="absolute top-1 right-1 size-2 rounded-full bg-brand-yellow ring-2 ring-brand-black" /> */}
+          <span aria-hidden className="absolute top-1 right-1 size-2 rounded-full bg-brand-yellow ring-2 ring-white" /> */}
         </Link>
 
-        <span aria-hidden className="mx-1 h-5 w-px bg-white/15" />
+        <span aria-hidden className="mx-1 h-5 w-px bg-border" />
 
-        {/* Disque jaune + initiale noire : écho direct du disque du logo (12,79:1) */}
+        {/* Disque jaune + initiale brun foncé : écho direct du disque du logo (10,19:1) */}
         <span
           aria-hidden
-          className="flex size-7 items-center justify-center rounded-full bg-brand-yellow text-xs font-semibold text-brand-black"
+          className="flex size-7 items-center justify-center rounded-full bg-brand-yellow text-xs font-semibold text-brand-yellow-ink"
         >
           {initial}
         </span>
-        <span className="hidden text-sm text-white/80 md:inline">{me?.email ?? "…"}</span>
+        <span className="hidden text-sm text-muted-foreground md:inline">{me?.email ?? "…"}</span>
 
-        <Button variant="ghost-dark" size="sm" onClick={handleLogout} disabled={logout.isPending}>
+        <Button variant="ghost" size="sm" onClick={handleLogout} disabled={logout.isPending}>
           <LogOut className="size-4" />
           Déconnexion
         </Button>

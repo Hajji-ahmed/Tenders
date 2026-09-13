@@ -28,9 +28,9 @@ export default function LoginPage() {
 
   return (
     <main className="grid min-h-screen lg:grid-cols-[1.1fr_1fr]">
-      {/* Panneau de marque : noir du logo + motif disque/arcs (classe .brand-hero de globals.css) */}
+      {/* Panneau de marque : vert encre + motif disque/arcs (classe .brand-hero de globals.css) */}
       <section
-        data-surface="dark"
+        data-surface="inverse"
         className="brand-hero hidden flex-col justify-between px-12 py-10 lg:flex"
       >
         <LogoFull width={340} priority />
@@ -40,27 +40,27 @@ export default function LoginPage() {
           <h1 className="text-3xl font-semibold leading-tight tracking-tight">
             Leading territories decarbonisation in Africa
           </h1>
-          <p className="text-sm leading-relaxed text-white/70">
+          <p className="text-sm leading-relaxed text-white/85">
             Plateforme interne de veille et de réponse aux appels d&apos;offres : recherche, qualification,
             analyse documentaire et préparation des candidatures, avec validation humaine à chaque étape.
           </p>
-          <ul className="space-y-2 text-sm text-white/85">
+          <ul className="space-y-2 text-sm text-white">
             {PILLARS.map((item) => (
               <li key={item} className="flex items-center gap-2.5">
-                <CircleCheck className="size-4 shrink-0 text-brand-green" />
+                <CircleCheck className="size-4 shrink-0 text-brand-yellow" />
                 {item}
               </li>
             ))}
           </ul>
         </div>
 
-        <p className="text-xs text-white/55">
+        <p className="text-xs text-white/75">
           Innovative &amp; Sustainable Solutions · Rabat, Maroc · innosustain.africa
         </p>
       </section>
 
-      {/* Panneau de connexion : filet vert vertical 4 px contre le panneau noir ; filet haut sur mobile */}
-      <section className="relative flex items-center justify-center bg-background px-6 py-12 lg:border-l-4 lg:border-brand-green">
+      {/* Panneau de connexion : filet jaune vertical 4 px contre le panneau vert ; filet haut sur mobile */}
+      <section className="relative flex items-center justify-center bg-background px-6 py-12 lg:border-l-4 lg:border-brand-yellow">
         <span aria-hidden className="absolute inset-x-0 top-0 h-[3px] bg-brand-green lg:hidden" />
 
         <div className="w-full max-w-sm space-y-8">
@@ -70,7 +70,7 @@ export default function LoginPage() {
           <div className="flex items-center gap-3">
             <LogoMark size={40} className="hidden lg:block" />
             <div>
-              <h2 className="text-2xl font-semibold tracking-tight text-brand-black">Connexion</h2>
+              <h2 className="text-2xl font-semibold tracking-tight text-brand-green-dark">Connexion</h2>
               <p className="text-sm text-muted-foreground">Espace appels d&apos;offres InnoSustain</p>
             </div>
           </div>

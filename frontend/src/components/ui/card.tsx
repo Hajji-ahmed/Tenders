@@ -1,14 +1,14 @@
 import * as React from "react"
 import { cn } from "cn"
 
-type CardAccent = "none" | "green" | "yellow" | "black"
+type CardAccent = "none" | "green" | "yellow" | "deep"
 
-// Liseré de 3 px en tête : vert (activité), jaune (signal), noir (structure). Un seul jaune par écran.
+// Liseré de 3 px en tête : vert (activité), jaune (signal), vert foncé (structure). Un seul jaune par écran.
 const CARD_ACCENT: Record<CardAccent, string> = {
   none: "",
   green: "border-t-[3px] border-t-brand-green",
   yellow: "border-t-[3px] border-t-brand-yellow",
-  black: "border-t-[3px] border-t-brand-black",
+  deep: "border-t-[3px] border-t-brand-green-dark",
 }
 
 function Card({
@@ -50,7 +50,7 @@ function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="card-title"
       className={cn(
-        "text-base leading-snug font-semibold text-brand-black group-data-[size=sm]/card:text-sm",
+        "text-base leading-snug font-semibold text-brand-green-dark group-data-[size=sm]/card:text-sm",
         className
       )}
       {...props}

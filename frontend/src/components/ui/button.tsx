@@ -9,17 +9,18 @@ const buttonVariants = cva(
       variant: {
         // Action principale : vert encre #047a36 (5,47:1 avec blanc), hover vert foncé charte
         default: "bg-primary text-primary-foreground hover:bg-brand-green-dark",
-        // Signal : jaune + texte noir (12,79:1). UN SEUL bouton accent par écran (l'action qui lance / crée)
+        // Signal : jaune + texte brun foncé (10,19:1). UN SEUL bouton accent par écran (l'action qui lance / crée)
         accent:
-          "bg-brand-yellow font-semibold text-brand-black hover:bg-brand-yellow-hover focus-visible:border-brand-black/60 focus-visible:ring-brand-yellow/40",
-        // Ossature : noir, texte blanc. Usage rare (Exporter, Archiver)
-        dark: "bg-brand-black text-white hover:bg-brand-black-soft focus-visible:border-brand-green focus-visible:ring-brand-green/40",
-        // Fantôme SUR surface noire (Header, héros) : focus jaune comme dans la sidebar
-        "ghost-dark":
-          "text-white/80 hover:bg-white/10 hover:text-white aria-expanded:bg-white/10 aria-expanded:text-white focus-visible:border-brand-yellow/60 focus-visible:ring-brand-yellow/30",
-        // Contour SUR surface noire : action secondaire d'un héros
-        "outline-dark":
-          "border-white/25 text-white hover:border-brand-yellow hover:bg-white/5 aria-expanded:bg-white/10 focus-visible:border-brand-yellow focus-visible:ring-brand-yellow/30",
+          "bg-brand-yellow font-semibold text-brand-yellow-ink hover:bg-brand-yellow-hover focus-visible:border-brand-green-dark/60 focus-visible:ring-brand-yellow/40",
+        // Ossature : vert encre plein, texte blanc. Usage rare (Exporter, Archiver)
+        inverse:
+          "bg-brand-green-ink text-white hover:bg-brand-ink-soft focus-visible:border-brand-yellow focus-visible:ring-brand-yellow/40",
+        // Fantôme SUR surface vert encre (Header, héros) : focus jaune comme dans la sidebar
+        "ghost-inverse":
+          "text-white/85 hover:bg-white/12 hover:text-white aria-expanded:bg-white/12 aria-expanded:text-white focus-visible:border-brand-yellow/60 focus-visible:ring-brand-yellow/30",
+        // Contour SUR surface vert encre : action secondaire d'un héros
+        "outline-inverse":
+          "border-white/40 text-white hover:border-brand-yellow hover:bg-white/8 aria-expanded:bg-white/12 focus-visible:border-brand-yellow focus-visible:ring-brand-yellow/30",
         // Contour : hover vert (bordure + teinte)
         outline:
           "border-border bg-background text-foreground hover:border-brand-green hover:bg-brand-green-tint hover:text-brand-green-dark aria-expanded:bg-brand-green-tint aria-expanded:text-brand-green-dark dark:border-input dark:bg-input/30 dark:hover:bg-input/50",

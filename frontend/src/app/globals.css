@@ -4,10 +4,11 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
-  Charte InnoSustain (innosustain.africa) : vert #059541, jaune #fdcd0e, vert foncé #236b41,
-  doré #c89316, noir #0b0f0d, fond #fbfbfb, texte #2f2f2f, gris #8a8fa3, Open Sans.
-  Rôles : NOIR = ossature (sidebar, header, héros, titres) · VERT = action et structure ·
-  JAUNE = signal (compteurs, item actif, un bouton accent par écran). Le contenu reste clair.
+  Charte InnoSustain (innosustain.africa) — vert, jaune, blanc uniquement (pas de noir) :
+  vert #059541, jaune #fdcd0e, vert foncé #236b41, vert encre #047a36, doré #c89316,
+  fond #fbfbfb, texte #2f2f2f, gris #8a8fa3, Open Sans.
+  Rôles : VERT ENCRE = ossature (sidebar, header, héros, titres) · VERT = action et structure ·
+  JAUNE = signal (compteurs, item actif, un bouton accent par écran). Le contenu reste blanc.
 */
 :root {
   /* ---- Marque : charte exacte + dérivés nommés (contraste vérifié) ---- */
@@ -21,8 +22,7 @@
   --brand-yellow-tint: #fff7d6;       /* fond des badges « à traiter » */
   --brand-yellow-ink: #4a3b00;        /* texte sur teinte jaune (10,19:1) */
   --brand-gold: #c89316;              /* charte : graphiques, pastilles. Jamais en texte (2,75:1) */
-  --brand-black: #0b0f0d;             /* ossature */
-  --brand-black-soft: #17211b;        /* hover sur surfaces noires */
+  --brand-ink-soft: #0a6b30;          /* hover sur surfaces vert encre */
   --brand-gray: #8a8fa3;              /* charte : icônes secondaires, bordure hover des champs. Jamais en texte (3,21:1) */
 
   --radius: 0.5rem;
@@ -50,7 +50,7 @@
   --success: var(--brand-green-ink);
   --success-foreground: #ffffff;
   --warning: var(--brand-yellow);
-  --warning-foreground: var(--brand-black);   /* MODIFIÉ : noir sur jaune */
+  --warning-foreground: var(--brand-yellow-ink); /* brun foncé sur jaune (10,19:1) */
 
   --chart-1: #059541;
   --chart-2: #fdcd0e;
@@ -58,50 +58,18 @@
   --chart-4: #c89316;
   --chart-5: #9aa6a0;
 
-  --sidebar: var(--brand-black);
-  --sidebar-foreground: #d5ddd8;
-  --sidebar-primary: var(--brand-green);
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: var(--brand-black-soft);
+  --sidebar: var(--brand-green-ink);          /* barre latérale vert encre, texte blanc (5,47:1) */
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: var(--brand-yellow);
+  --sidebar-primary-foreground: var(--brand-yellow-ink);
+  --sidebar-accent: var(--brand-ink-soft);
   --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: #1f2b24;
-  --sidebar-ring: var(--brand-yellow);        /* MODIFIÉ : focus clavier JAUNE sur surfaces noires */
+  --sidebar-border: #2f9a5a;
+  --sidebar-ring: var(--brand-yellow);        /* focus clavier JAUNE sur surfaces vertes */
 
   --scrollbar-thumb: #b9d6c4;                 /* vert-gris discret sur surfaces claires */
 }
 
-.dark {
-  --brand-green-ink: #22b55f;
-  --brand-green-tint: #14261b;
-  --brand-green-tint-strong: #1b3524;
-  --brand-yellow-tint: #2b2410;
-  --brand-yellow-ink: #ffe27a;
-  --brand-black-soft: #1c2620;
-
-  --background: #0b0f0d;
-  --foreground: #e6ebe8;
-  --card: #121816;
-  --card-foreground: #e6ebe8;
-  --popover: #121816;
-  --popover-foreground: #e6ebe8;
-  --primary: #22b55f;
-  --primary-foreground: #06170d;
-  --secondary: #17211b;
-  --secondary-foreground: #bfe8cf;
-  --muted: #17211b;
-  --muted-foreground: #98a59f;
-  --accent: #17211b;
-  --accent-foreground: #bfe8cf;
-  --destructive: #ef5a4e;
-  --destructive-foreground: #ffffff;
-  --border: #243029;
-  --input: #2b3931;
-  --ring: #22b55f;
-  --sidebar: #070a09;
-  --sidebar-accent: #131b17;
-  --sidebar-border: #1a231e;
-  --scrollbar-thumb: #2a3630;
-}
 
 @theme inline {
   --font-sans: var(--font-open-sans), ui-sans-serif, system-ui, sans-serif;
@@ -147,8 +115,7 @@
   --color-brand-yellow-tint: var(--brand-yellow-tint);
   --color-brand-yellow-ink: var(--brand-yellow-ink);
   --color-brand-gold: var(--brand-gold);
-  --color-brand-black: var(--brand-black);
-  --color-brand-black-soft: var(--brand-black-soft);
+  --color-brand-ink-soft: var(--brand-ink-soft);
   --color-brand-gray: var(--brand-gray);
 
   --color-chart-1: var(--chart-1);
@@ -184,27 +151,27 @@
   h3 {
     @apply tracking-tight;
   }
-  /* Sélection de texte : disque jaune du logo + texte noir (12,79:1), valable aussi sur les surfaces noires */
+  /* Sélection de texte : disque jaune du logo + texte vert foncé */
   ::selection {
     background-color: var(--brand-yellow);
-    color: var(--brand-black);
+    color: var(--brand-green-dark);
   }
-  /* Surfaces noires (sidebar, héros) : pouce sombre. Redéclaré car la valeur héritée est déjà calculée. */
-  [data-surface="dark"] {
-    --scrollbar-thumb: #2a3630;
+  /* Surfaces vert encre (sidebar, héros) : pouce clair. Redéclaré car la valeur héritée est déjà calculée. */
+  [data-surface="inverse"] {
+    --scrollbar-thumb: #7fc39b;
     scrollbar-color: var(--scrollbar-thumb) transparent;
   }
 }
 
 @layer components {
-  /* Surface héros : noir du logo + motif « disque jaune, anneau vert, grand arc vert », en CSS pur,
+  /* Surface héros : vert encre + motif du logo « disque jaune, anneau clair, grand arc », en CSS pur,
      sous le contenu (z-index -1 dans un contexte isolé). Aucun dégradé. --hero-scale règle la taille. */
   .brand-hero {
     --hero-scale: 1;
     position: relative;
     isolation: isolate;
     overflow: hidden;
-    background-color: var(--brand-black);
+    background-color: var(--brand-green-ink);
     color: #ffffff;
   }
   .brand-hero::before {
@@ -220,7 +187,7 @@
     translate: 0 -50%;
     rotate: -30deg;
     border-radius: 9999px;
-    border: calc(3rem * var(--hero-scale)) solid color-mix(in srgb, var(--brand-green) 20%, transparent);
+    border: calc(3rem * var(--hero-scale)) solid color-mix(in srgb, #ffffff 14%, transparent);
     border-left-color: transparent;
     border-bottom-color: transparent;
   }
@@ -236,15 +203,15 @@
     height: calc(6rem * var(--hero-scale));
     translate: 0 -50%;
     border-radius: 9999px;
-    background-color: color-mix(in srgb, var(--brand-yellow) 16%, transparent);
+    background-color: color-mix(in srgb, var(--brand-yellow) 55%, transparent);
     box-shadow:
-      0 0 0 calc(1rem * var(--hero-scale)) var(--brand-black),
-      0 0 0 calc(2rem * var(--hero-scale)) color-mix(in srgb, var(--brand-green) 28%, transparent);
+      0 0 0 calc(1rem * var(--hero-scale)) var(--brand-green-ink),
+      0 0 0 calc(2rem * var(--hero-scale)) color-mix(in srgb, #ffffff 22%, transparent);
   }
   .brand-hero-sm {
     --hero-scale: 0.6;
   }
-  /* Logo miniature (10 px) : disque jaune, anneau noir (= espace sur fond noir), anneau vert */
+  /* Logo miniature (10 px) : disque jaune, anneau blanc (= espace), anneau vert — le logo sur fond clair */
   .brand-dot {
     display: inline-block;
     flex: none;
@@ -253,7 +220,7 @@
     border-radius: 9999px;
     background-color: var(--brand-yellow);
     box-shadow:
-      0 0 0 2px var(--brand-black),
+      0 0 0 2px #ffffff,
       0 0 0 4px var(--brand-green);
   }
 }

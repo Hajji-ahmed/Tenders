@@ -21,14 +21,14 @@ const badgeVariants = cva(
         // Positif / validé : teinte verte + vert foncé (5,7:1)
         success:
           "border-brand-green/30 bg-brand-green-tint text-brand-green-dark [a]:hover:bg-brand-green-tint-strong",
-        // Signal fort : jaune plein + noir (12,79:1) — nouveau, échéance proche. Un seul par ligne
+        // Signal fort : jaune plein + brun foncé (10,19:1) — nouveau, échéance proche. Un seul par ligne
         warning:
-          "bg-brand-yellow font-semibold text-brand-black [a]:hover:bg-brand-yellow-hover",
+          "bg-brand-yellow font-semibold text-brand-yellow-ink [a]:hover:bg-brand-yellow-hover",
         // Attention douce : teinte jaune + texte brun (10,19:1) — à qualifier, en attente
         "warning-soft":
           "border-brand-yellow/70 bg-brand-yellow-tint text-brand-yellow-ink",
-        // Ossature : statut figé (déposé, en cours de traitement)
-        dark: "bg-brand-black text-white [a]:hover:bg-brand-black-soft",
+        // Ossature : statut figé (déposé, en cours de traitement) — vert encre plein
+        inverse: "bg-brand-green-ink text-white [a]:hover:bg-brand-ink-soft",
         // Clôturé / inactif
         muted: "bg-muted text-muted-foreground",
       },

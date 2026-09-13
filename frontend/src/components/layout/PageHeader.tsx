@@ -11,7 +11,7 @@ type Props = {
   className?: string;
 };
 
-/** En-tête de page : surtitre, titre noir (+ compteur jaune), sous-titre, actions ; filet bas discret. */
+/** En-tête de page : surtitre, titre vert foncé (+ compteur jaune), sous-titre, actions ; filet bas discret. */
 export function PageHeader({ title, description, eyebrow, count, actions, className }: Props) {
   return (
     <div
@@ -21,10 +21,10 @@ export function PageHeader({ title, description, eyebrow, count, actions, classN
         {eyebrow && (
           <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-green-dark">{eyebrow}</p>
         )}
-        <h1 className="flex items-center gap-2.5 text-2xl font-semibold tracking-tight text-brand-black">
+        <h1 className="flex items-center gap-2.5 text-2xl font-semibold tracking-tight text-brand-green-dark">
           {title}
           {typeof count === "number" && (
-            <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-brand-yellow px-2 text-xs font-semibold tabular-nums text-brand-black">
+            <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-brand-yellow px-2 text-xs font-semibold tabular-nums text-brand-yellow-ink">
               {count}
             </span>
           )}
