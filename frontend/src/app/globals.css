@@ -4,16 +4,26 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
-  Charte InnoSustain — couleurs exactes du logo et du site innosustain.africa :
-  vert #059541 (marque, actions), jaune #fdcd0e (accent), vert foncé #236b41 (hover),
-  fond #fbfbfb, texte #2f2f2f, police Open Sans ; barre latérale sombre comme le fond du logo.
-  Le contenu reste neutre et clair : l'interface sert les données.
+  Charte InnoSustain (innosustain.africa) : vert #059541, jaune #fdcd0e, vert foncé #236b41,
+  doré #c89316, noir #0b0f0d, fond #fbfbfb, texte #2f2f2f, gris #8a8fa3, Open Sans.
+  Rôles : NOIR = ossature (sidebar, header, héros, titres) · VERT = action et structure ·
+  JAUNE = signal (compteurs, item actif, un bouton accent par écran). Le contenu reste clair.
 */
 :root {
-  --brand-green: #059541;
-  --brand-green-dark: #236b41;
-  --brand-yellow: #fdcd0e;
-  --brand-black: #0b0f0d;
+  /* ---- Marque : charte exacte + dérivés nommés (contraste vérifié) ---- */
+  --brand-green: #059541;             /* liserés, icônes, ring, arcs. JAMAIS texte < 24 px ni fond à texte blanc (3,9:1) */
+  --brand-green-ink: #047a36;         /* même teinte foncée : fonds primary + texte blanc (5,47:1), liens (5,28:1 sur fond) */
+  --brand-green-dark: #236b41;        /* charte : texte vert courant (6,46:1), hover des fonds verts */
+  --brand-green-tint: #e6f4ec;        /* surface verte claire : hover, badges success, ligne sélectionnée */
+  --brand-green-tint-strong: #cfe9da; /* hover des surfaces teintées (5,02:1 avec #236b41) */
+  --brand-yellow: #fdcd0e;            /* signal : texte NOIR uniquement (12,79:1) */
+  --brand-yellow-hover: #f2c200;      /* hover du jaune (11,48:1 avec noir) */
+  --brand-yellow-tint: #fff7d6;       /* fond des badges « à traiter » */
+  --brand-yellow-ink: #4a3b00;        /* texte sur teinte jaune (10,19:1) */
+  --brand-gold: #c89316;              /* charte : graphiques, pastilles. Jamais en texte (2,75:1) */
+  --brand-black: #0b0f0d;             /* ossature */
+  --brand-black-soft: #17211b;        /* hover sur surfaces noires */
+  --brand-gray: #8a8fa3;              /* charte : icônes secondaires, bordure hover des champs. Jamais en texte (3,21:1) */
 
   --radius: 0.5rem;
 
@@ -23,24 +33,24 @@
   --card-foreground: #2f2f2f;
   --popover: #ffffff;
   --popover-foreground: #2f2f2f;
-  --primary: var(--brand-green);
+  --primary: var(--brand-green-ink);          /* MODIFIÉ (était #059541) : AA avec texte blanc */
   --primary-foreground: #ffffff;
-  --secondary: #e6f4ec;
+  --secondary: var(--brand-green-tint);
   --secondary-foreground: var(--brand-green-dark);
   --muted: #f1f3f2;
-  --muted-foreground: #6b7280;
-  --accent: #e6f4ec;
+  --muted-foreground: #6b7280;                /* 4,83:1 — le gris charte ne passe pas AA en texte */
+  --accent: var(--brand-green-tint);
   --accent-foreground: var(--brand-green-dark);
   --destructive: #d23b2f;
   --destructive-foreground: #ffffff;
   --border: #e3e7e5;
   --input: #d3dad6;
-  --ring: var(--brand-green);
+  --ring: var(--brand-green);                 /* focus vert sur surfaces claires (non-texte, 3,9:1 > 3:1) */
 
-  --success: #059541;
+  --success: var(--brand-green-ink);
   --success-foreground: #ffffff;
   --warning: var(--brand-yellow);
-  --warning-foreground: #4a3b00;
+  --warning-foreground: var(--brand-black);   /* MODIFIÉ : noir sur jaune */
 
   --chart-1: #059541;
   --chart-2: #fdcd0e;
@@ -52,13 +62,22 @@
   --sidebar-foreground: #d5ddd8;
   --sidebar-primary: var(--brand-green);
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #17211b;
+  --sidebar-accent: var(--brand-black-soft);
   --sidebar-accent-foreground: #ffffff;
   --sidebar-border: #1f2b24;
-  --sidebar-ring: var(--brand-green);
+  --sidebar-ring: var(--brand-yellow);        /* MODIFIÉ : focus clavier JAUNE sur surfaces noires */
+
+  --scrollbar-thumb: #b9d6c4;                 /* vert-gris discret sur surfaces claires */
 }
 
 .dark {
+  --brand-green-ink: #22b55f;
+  --brand-green-tint: #14261b;
+  --brand-green-tint-strong: #1b3524;
+  --brand-yellow-tint: #2b2410;
+  --brand-yellow-ink: #ffe27a;
+  --brand-black-soft: #1c2620;
+
   --background: #0b0f0d;
   --foreground: #e6ebe8;
   --card: #121816;
@@ -81,6 +100,7 @@
   --sidebar: #070a09;
   --sidebar-accent: #131b17;
   --sidebar-border: #1a231e;
+  --scrollbar-thumb: #2a3630;
 }
 
 @theme inline {
@@ -118,9 +138,18 @@
   --color-warning-foreground: var(--warning-foreground);
 
   --color-brand-green: var(--brand-green);
+  --color-brand-green-ink: var(--brand-green-ink);
   --color-brand-green-dark: var(--brand-green-dark);
+  --color-brand-green-tint: var(--brand-green-tint);
+  --color-brand-green-tint-strong: var(--brand-green-tint-strong);
   --color-brand-yellow: var(--brand-yellow);
+  --color-brand-yellow-hover: var(--brand-yellow-hover);
+  --color-brand-yellow-tint: var(--brand-yellow-tint);
+  --color-brand-yellow-ink: var(--brand-yellow-ink);
+  --color-brand-gold: var(--brand-gold);
   --color-brand-black: var(--brand-black);
+  --color-brand-black-soft: var(--brand-black-soft);
+  --color-brand-gray: var(--brand-gray);
 
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
@@ -142,7 +171,89 @@
   * {
     @apply border-border outline-ring/50;
   }
+  /* scrollbar-color est hérité : une déclaration sur html suffit pour les surfaces claires */
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
+  }
   body {
     @apply bg-background text-foreground font-sans antialiased;
+  }
+  h1,
+  h2,
+  h3 {
+    @apply tracking-tight;
+  }
+  /* Sélection de texte : disque jaune du logo + texte noir (12,79:1), valable aussi sur les surfaces noires */
+  ::selection {
+    background-color: var(--brand-yellow);
+    color: var(--brand-black);
+  }
+  /* Surfaces noires (sidebar, héros) : pouce sombre. Redéclaré car la valeur héritée est déjà calculée. */
+  [data-surface="dark"] {
+    --scrollbar-thumb: #2a3630;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
+  }
+}
+
+@layer components {
+  /* Surface héros : noir du logo + motif « disque jaune, anneau vert, grand arc vert », en CSS pur,
+     sous le contenu (z-index -1 dans un contexte isolé). Aucun dégradé. --hero-scale règle la taille. */
+  .brand-hero {
+    --hero-scale: 1;
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    background-color: var(--brand-black);
+    color: #ffffff;
+  }
+  .brand-hero::before {
+    /* grand arc extérieur (côtés gauche/bas transparents = arc, pas anneau) */
+    content: "";
+    position: absolute;
+    z-index: -1;
+    pointer-events: none;
+    top: 50%;
+    right: calc(-7rem * var(--hero-scale));
+    width: calc(26rem * var(--hero-scale));
+    height: calc(26rem * var(--hero-scale));
+    translate: 0 -50%;
+    rotate: -30deg;
+    border-radius: 9999px;
+    border: calc(3rem * var(--hero-scale)) solid color-mix(in srgb, var(--brand-green) 20%, transparent);
+    border-left-color: transparent;
+    border-bottom-color: transparent;
+  }
+  .brand-hero::after {
+    /* disque jaune tamisé + anneau vert rapproché, concentriques avec l'arc (centre à 6rem du bord droit) */
+    content: "";
+    position: absolute;
+    z-index: -1;
+    pointer-events: none;
+    top: 50%;
+    right: calc(3rem * var(--hero-scale));
+    width: calc(6rem * var(--hero-scale));
+    height: calc(6rem * var(--hero-scale));
+    translate: 0 -50%;
+    border-radius: 9999px;
+    background-color: color-mix(in srgb, var(--brand-yellow) 16%, transparent);
+    box-shadow:
+      0 0 0 calc(1rem * var(--hero-scale)) var(--brand-black),
+      0 0 0 calc(2rem * var(--hero-scale)) color-mix(in srgb, var(--brand-green) 28%, transparent);
+  }
+  .brand-hero-sm {
+    --hero-scale: 0.6;
+  }
+  /* Logo miniature (10 px) : disque jaune, anneau noir (= espace sur fond noir), anneau vert */
+  .brand-dot {
+    display: inline-block;
+    flex: none;
+    width: 0.625rem;
+    height: 0.625rem;
+    border-radius: 9999px;
+    background-color: var(--brand-yellow);
+    box-shadow:
+      0 0 0 2px var(--brand-black),
+      0 0 0 4px var(--brand-green);
   }
 }

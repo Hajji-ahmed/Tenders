@@ -8,16 +8,29 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground [a]:hover:bg-primary/80",
+        default: "bg-primary text-primary-foreground [a]:hover:bg-brand-green-dark",
         secondary:
-          "bg-secondary text-secondary-foreground [a]:hover:bg-secondary/80",
+          "bg-brand-green-tint text-brand-green-dark [a]:hover:bg-brand-green-tint-strong",
         destructive:
           "bg-destructive/10 text-destructive focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:focus-visible:ring-destructive/40 [a]:hover:bg-destructive/20",
         outline:
-          "border-border text-foreground [a]:hover:bg-muted [a]:hover:text-muted-foreground",
-        ghost:
-          "hover:bg-muted hover:text-muted-foreground dark:hover:bg-muted/50",
+          "border-border text-foreground [a]:hover:border-brand-green/50 [a]:hover:text-brand-green-dark",
+        ghost: "hover:bg-brand-green-tint hover:text-brand-green-dark dark:hover:bg-muted/50",
         link: "text-primary underline-offset-4 hover:underline",
+        // ---- Statuts métier InnoSustain ----
+        // Positif / validé : teinte verte + vert foncé (5,7:1)
+        success:
+          "border-brand-green/30 bg-brand-green-tint text-brand-green-dark [a]:hover:bg-brand-green-tint-strong",
+        // Signal fort : jaune plein + noir (12,79:1) — nouveau, échéance proche. Un seul par ligne
+        warning:
+          "bg-brand-yellow font-semibold text-brand-black [a]:hover:bg-brand-yellow-hover",
+        // Attention douce : teinte jaune + texte brun (10,19:1) — à qualifier, en attente
+        "warning-soft":
+          "border-brand-yellow/70 bg-brand-yellow-tint text-brand-yellow-ink",
+        // Ossature : statut figé (déposé, en cours de traitement)
+        dark: "bg-brand-black text-white [a]:hover:bg-brand-black-soft",
+        // Clôturé / inactif
+        muted: "bg-muted text-muted-foreground",
       },
     },
     defaultVariants: {

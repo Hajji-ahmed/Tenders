@@ -1,5 +1,6 @@
 "use client";
 
+import { CircleCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -7,6 +8,8 @@ import { LoginForm, type LoginValues } from "@/components/auth/LoginForm";
 import { LogoFull, LogoMark } from "@/components/brand/Logo";
 import { ApiError } from "@/lib/api";
 import { useLogin } from "@/lib/queries/auth";
+
+const PILLARS = ["Veille multi-sources", "Qualification Go / No-Go", "Préparation des candidatures"];
 
 export default function LoginPage() {
   const router = useRouter();
@@ -25,18 +28,15 @@ export default function LoginPage() {
 
   return (
     <main className="grid min-h-screen lg:grid-cols-[1.1fr_1fr]">
-      {/* Panneau de marque — fond sombre comme le logo, accent jaune discret */}
-      <section className="relative hidden flex-col justify-between overflow-hidden bg-brand-black px-12 py-10 text-white lg:flex">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -right-40 -top-40 size-[520px] rounded-full border-[56px] border-brand-green/15"
-        />
-        <div aria-hidden className="pointer-events-none absolute -bottom-24 -left-24 size-72 rounded-full bg-brand-yellow/10" />
+      {/* Panneau de marque : noir du logo + motif disque/arcs (classe .brand-hero de globals.css) */}
+      <section
+        data-surface="dark"
+        className="brand-hero hidden flex-col justify-between px-12 py-10 lg:flex"
+      >
+        <LogoFull width={340} priority />
 
-        <LogoFull width={340} priority className="relative" />
-
-        <div className="relative max-w-md space-y-5">
-          <div className="h-1 w-12 rounded-full bg-brand-yellow" />
+        <div className="max-w-md space-y-5">
+          <div aria-hidden className="h-1 w-12 rounded-full bg-brand-yellow" />
           <h1 className="text-3xl font-semibold leading-tight tracking-tight">
             Leading territories decarbonisation in Africa
           </h1>
@@ -44,30 +44,39 @@ export default function LoginPage() {
             Plateforme interne de veille et de réponse aux appels d&apos;offres : recherche, qualification,
             analyse documentaire et préparation des candidatures, avec validation humaine à chaque étape.
           </p>
+          <ul className="space-y-2 text-sm text-white/85">
+            {PILLARS.map((item) => (
+              <li key={item} className="flex items-center gap-2.5">
+                <CircleCheck className="size-4 shrink-0 text-brand-green" />
+                {item}
+              </li>
+            ))}
+          </ul>
         </div>
 
-        <p className="relative text-xs text-white/40">
+        <p className="text-xs text-white/55">
           Innovative &amp; Sustainable Solutions · Rabat, Maroc · innosustain.africa
         </p>
       </section>
 
-      {/* Panneau de connexion */}
-      <section className="flex items-center justify-center bg-background px-6 py-12">
+      {/* Panneau de connexion : filet vert vertical 4 px contre le panneau noir ; filet haut sur mobile */}
+      <section className="relative flex items-center justify-center bg-background px-6 py-12 lg:border-l-4 lg:border-brand-green">
+        <span aria-hidden className="absolute inset-x-0 top-0 h-[3px] bg-brand-green lg:hidden" />
+
         <div className="w-full max-w-sm space-y-8">
-          <div className="space-y-4 lg:hidden">
+          <div className="lg:hidden">
             <LogoFull width={260} priority />
           </div>
-          <div className="space-y-1">
-            <div className="flex items-center gap-3">
-              <LogoMark size={40} className="hidden lg:block" />
-              <div>
-                <h2 className="text-2xl font-semibold tracking-tight">Connexion</h2>
-                <p className="text-sm text-muted-foreground">Espace appels d&apos;offres InnoSustain</p>
-              </div>
+          <div className="flex items-center gap-3">
+            <LogoMark size={40} className="hidden lg:block" />
+            <div>
+              <h2 className="text-2xl font-semibold tracking-tight text-brand-black">Connexion</h2>
+              <p className="text-sm text-muted-foreground">Espace appels d&apos;offres InnoSustain</p>
             </div>
           </div>
           <LoginForm onSubmit={handleSubmit} error={error} />
-          <p className="text-xs text-muted-foreground">
+          <p className="flex items-center gap-2.5 text-xs text-muted-foreground">
+            <span aria-hidden className="brand-dot" />
             Accès réservé. Les documents et données de l&apos;entreprise sont protégés.
           </p>
         </div>

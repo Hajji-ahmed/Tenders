@@ -7,7 +7,8 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
   return (
     <div
       data-slot="table-container"
-      className="relative w-full overflow-x-auto"
+      // Encadré seul ; nu s'il est déjà posé dans une Card (évite le double cadre, la Card rogne les coins du thead)
+      className="relative w-full overflow-x-auto rounded-xl bg-card ring-1 ring-foreground/10 in-data-[slot=card]:rounded-none in-data-[slot=card]:bg-transparent in-data-[slot=card]:ring-0"
     >
       <table
         data-slot="table"
@@ -18,11 +19,21 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
   )
 }
 
-function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
+function TableHeader({
+  className,
+  variant = "default",
+  ...props
+}: React.ComponentProps<"thead"> & { variant?: "default" | "dark" }) {
   return (
     <thead
       data-slot="table-header"
-      className={cn("[&_tr]:border-b", className)}
+      data-variant={variant}
+      // Filet vert 2 px sous l'en-tête dans les deux variantes. `dark` (thead noir) : une seule table par page.
+      className={cn(
+        "group/thead [&_tr]:border-b-2 [&_tr]:border-brand-green [&_tr]:hover:bg-transparent",
+        variant === "dark" ? "bg-brand-black" : "bg-muted/60",
+        className
+      )}
       {...props}
     />
   )
@@ -43,7 +54,7 @@ function TableFooter({ className, ...props }: React.ComponentProps<"tfoot">) {
     <tfoot
       data-slot="table-footer"
       className={cn(
-        "border-t bg-muted/50 font-medium [&>tr]:last:border-b-0",
+        "border-t-2 border-brand-black bg-muted/50 font-medium text-brand-black [&>tr]:last:border-b-0",
         className
       )}
       {...props}
@@ -55,8 +66,9 @@ function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
   return (
     <tr
       data-slot="table-row"
+      // Survol : teinte verte. Sélection : teinte verte + barre jaune 3 px à gauche (signal)
       className={cn(
-        "border-b transition-colors hover:bg-muted/50 has-aria-expanded:bg-muted/50 data-[state=selected]:bg-muted",
+        "border-b transition-colors hover:bg-brand-green-tint/50 has-aria-expanded:bg-brand-green-tint/50 data-[state=selected]:bg-brand-green-tint data-[state=selected]:shadow-[inset_3px_0_0_0_var(--brand-yellow)]",
         className
       )}
       {...props}
@@ -68,8 +80,9 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
   return (
     <th
       data-slot="table-head"
+      // Libellés noirs en petites capitales ; sur thead noir : blanc/90, colonne triée (aria-sort) en jaune
       className={cn(
-        "h-10 px-2 text-left align-middle font-medium whitespace-nowrap text-foreground [&:has([role=checkbox])]:pr-0",
+        "h-9 px-3 text-left align-middle text-xs font-semibold uppercase tracking-wide whitespace-nowrap text-brand-black aria-[sort]:text-brand-green-dark group-data-[variant=dark]/thead:text-white/90 group-data-[variant=dark]/thead:aria-[sort]:text-brand-yellow [&:has([role=checkbox])]:pr-0",
         className
       )}
       {...props}
@@ -82,7 +95,7 @@ function TableCell({ className, ...props }: React.ComponentProps<"td">) {
     <td
       data-slot="table-cell"
       className={cn(
-        "p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0",
+        "px-3 py-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0",
         className
       )}
       {...props}

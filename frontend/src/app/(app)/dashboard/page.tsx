@@ -1,10 +1,36 @@
-import { ArrowRight, Building2, FileText, Search } from "lucide-react";
+import {
+  ArrowRight,
+  Briefcase,
+  Building2,
+  CalendarClock,
+  FileClock,
+  FileText,
+  Search,
+  type LucideIcon,
+} from "lucide-react";
 import Link from "next/link";
+import { cn } from "cn";
 
 import { PageHeader } from "@/components/layout/PageHeader";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { buttonVariants } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-// Page provisoire — remplacée par le vrai dashboard (indicateurs, échéances) en Phase 11.
+type KpiAccent = "green" | "yellow" | "black";
+
+// Indicateurs provisoires — branchés sur l'API en Phase 11.
+// Liserés : vert (activité), jaune (signal d'échéance), noir (structure) — le trio de la charte, une fois par écran.
+const KPIS: { label: string; value: string; hint: string; icon: LucideIcon; accent: KpiAccent }[] = [
+  { label: "Opportunités actives", value: "—", hint: "collectées, non archivées", icon: Briefcase, accent: "green" },
+  { label: "Échéances sous 7 jours", value: "—", hint: "à traiter en priorité", icon: CalendarClock, accent: "yellow" },
+  { label: "Documents à renouveler", value: "—", hint: "attestations expirant sous 30 jours", icon: FileClock, accent: "black" },
+];
+
+const KPI_ICON: Record<KpiAccent, string> = {
+  green: "bg-brand-green-tint text-brand-green",
+  yellow: "bg-brand-yellow text-brand-black",
+  black: "bg-brand-black text-brand-yellow",
+};
+
 const STEPS = [
   {
     href: "/company",
@@ -29,39 +55,86 @@ const STEPS = [
 export default function DashboardPage() {
   return (
     <div className="space-y-6">
-      <PageHeader title="Dashboard" description="Vue d'ensemble de l'activité appels d'offres" />
+      <PageHeader eyebrow="Pilotage" title="Dashboard" description="Vue d'ensemble de l'activité appels d'offres" />
 
-      <Card className="border-l-4 border-l-brand-green">
-        <CardHeader>
-          <CardTitle>Bienvenue sur l&apos;espace appels d&apos;offres d&apos;InnoSustain</CardTitle>
-          <CardDescription>
-            Les indicateurs (opportunités, scores, échéances) apparaîtront ici. Commencez par les trois étapes
-            ci-dessous.
-          </CardDescription>
-        </CardHeader>
-      </Card>
+      {/* Bandeau héros : même vocabulaire que le panneau de connexion (noir, disque/arcs, tiret jaune, CTA jaune) */}
+      <section data-surface="dark" className="brand-hero brand-hero-sm rounded-xl px-6 py-6">
+        <div className="flex flex-wrap items-end justify-between gap-6">
+          <div className="max-w-xl space-y-3">
+            <div aria-hidden className="h-1 w-10 rounded-full bg-brand-yellow" />
+            <h2 className="text-xl font-semibold tracking-tight">
+              Bienvenue sur l&apos;espace appels d&apos;offres d&apos;InnoSustain
+            </h2>
+            <p className="text-sm leading-relaxed text-white/70">
+              Les indicateurs (opportunités, scores, échéances) apparaîtront ici. Commencez par les trois étapes
+              ci-dessous.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {/* Le seul bouton accent de l'écran */}
+            <Link href="/tenders" className={buttonVariants({ variant: "accent" })}>
+              Voir les opportunités
+              <ArrowRight data-icon="inline-end" />
+            </Link>
+            <Link href="/search-profiles" className={buttonVariants({ variant: "outline-dark" })}>
+              Configurer la recherche
+            </Link>
+          </div>
+        </div>
+      </section>
 
+      {/* Tuiles indicateurs : cartes blanches, liseré vert / jaune / noir, chiffre noir */}
       <div className="grid gap-4 md:grid-cols-3">
-        {STEPS.map(({ href, icon: Icon, title, text }, i) => (
-          <Link key={href} href={href} className="group outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xl">
-            <Card className="h-full transition-colors group-hover:border-brand-green/40">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <span className="flex size-9 items-center justify-center rounded-lg bg-secondary text-brand-green">
-                    <Icon className="size-4" />
-                  </span>
-                  <span className="text-xs font-medium text-muted-foreground">Étape {i + 1}</span>
-                </div>
-                <CardTitle className="pt-2 text-base">{title}</CardTitle>
-              </CardHeader>
-              <CardContent className="flex items-end justify-between gap-3 text-sm text-muted-foreground">
-                <p>{text}</p>
-                <ArrowRight className="size-4 shrink-0 text-brand-green opacity-0 transition-opacity group-hover:opacity-100" />
-              </CardContent>
-            </Card>
-          </Link>
+        {KPIS.map(({ label, value, hint, icon: Icon, accent }) => (
+          <Card key={label} accent={accent} size="sm">
+            <CardContent className="flex items-start justify-between gap-3">
+              <div className="space-y-1">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
+                <p className="text-3xl font-semibold tracking-tight tabular-nums text-brand-black">{value}</p>
+                <p className="text-xs text-muted-foreground">{hint}</p>
+              </div>
+              <span className={cn("flex size-9 shrink-0 items-center justify-center rounded-lg", KPI_ICON[accent])}>
+                <Icon className="size-4" />
+              </span>
+            </CardContent>
+          </Card>
         ))}
       </div>
+
+      {/* Trois étapes : icône verte sur teinte, numéro = chip noir / chiffre jaune (le logo en 20 px) */}
+      <section className="space-y-3">
+        <div className="flex items-center gap-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-brand-black">Mise en route</h2>
+          <span aria-hidden className="h-px flex-1 bg-border" />
+        </div>
+        <div className="grid gap-4 md:grid-cols-3">
+          {STEPS.map(({ href, icon: Icon, title, text }, i) => (
+            <Link
+              key={href}
+              href={href}
+              className="group/step rounded-xl outline-none focus-visible:ring-3 focus-visible:ring-brand-green/40"
+            >
+              <Card className="h-full transition-shadow group-hover/step:shadow-sm group-hover/step:ring-brand-green/60">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <span className="flex size-9 items-center justify-center rounded-lg bg-brand-green-tint text-brand-green">
+                      <Icon className="size-4" />
+                    </span>
+                    <span className="rounded-md bg-brand-black px-1.5 py-0.5 text-[11px] font-semibold tabular-nums text-brand-yellow">
+                      0{i + 1}
+                    </span>
+                  </div>
+                  <CardTitle className="pt-2">{title}</CardTitle>
+                </CardHeader>
+                <CardContent className="flex items-end justify-between gap-3 text-sm text-muted-foreground">
+                  <p>{text}</p>
+                  <ArrowRight className="size-4 shrink-0 text-brand-green opacity-0 transition-opacity group-hover/step:opacity-100" />
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }
