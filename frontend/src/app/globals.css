@@ -7,7 +7,7 @@
   Charte InnoSustain (innosustain.africa) — vert, jaune, blanc uniquement (pas de noir) :
   vert #059541, jaune #fdcd0e, vert foncé #236b41, vert encre #047a36, doré #c89316,
   fond #fbfbfb, texte #2f2f2f, gris #8a8fa3, Open Sans.
-  Rôles : VERT ENCRE = ossature (sidebar, header, héros, titres) · VERT = action et structure ·
+  Rôles : VERT ENCRE = ossature (héros, élément actif, titres) · sidebar en teinte verte claire · VERT = action et structure ·
   JAUNE = signal (compteurs, item actif, un bouton accent par écran) · BLEU LAGON = information et
   repérage (surtitres, badges info, 3e liseré, graphiques). Le contenu reste blanc.
 */
@@ -62,14 +62,14 @@
   --chart-4: #1b6f8e;
   --chart-5: #c89316;
 
-  --sidebar: var(--brand-green-ink);          /* barre latérale vert encre, texte blanc (5,47:1) */
-  --sidebar-foreground: #ffffff;
-  --sidebar-primary: var(--brand-yellow);
-  --sidebar-primary-foreground: var(--brand-yellow-ink);
-  --sidebar-accent: var(--brand-ink-soft);
-  --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: #2f9a5a;
-  --sidebar-ring: var(--brand-yellow);        /* focus clavier JAUNE sur surfaces vertes */
+  --sidebar: #e9f5ee;                         /* barre latérale vert très clair (teinte de la marque) */
+  --sidebar-foreground: var(--brand-green-dark);
+  --sidebar-primary: var(--brand-green-ink);  /* élément actif : vert encre, texte blanc */
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #ffffff;                  /* survol : blanc */
+  --sidebar-accent-foreground: var(--brand-green-dark);
+  --sidebar-border: #cfe5d8;
+  --sidebar-ring: var(--brand-green);
 
   --scrollbar-thumb: #b9d6c4;                 /* vert-gris discret sur surfaces claires */
 }

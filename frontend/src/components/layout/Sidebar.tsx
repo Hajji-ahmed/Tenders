@@ -57,15 +57,16 @@ export const NAV: NavGroup[] = [
   },
 ];
 
+/**
+ * Barre latérale : vert très clair (teinte de la marque), logo sur blanc, élément actif en vert encre
+ * avec liseré jaune, titres de groupe en bleu lagon. Le filet vert 2 px du bloc logo prolonge celui
+ * de l'en-tête.
+ */
 export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside
-      data-surface="inverse"
-      className="flex h-screen w-60 shrink-0 flex-col bg-sidebar text-sidebar-foreground"
-    >
-      {/* Bloc logo sur fond blanc (le logo garde ses couleurs) ; le filet vert 2 px prolonge celui du Header */}
+    <aside className="flex h-screen w-60 shrink-0 flex-col border-r border-brand-green/20 bg-sidebar text-sidebar-foreground">
       <Link
         href="/dashboard"
         className="flex h-16 items-center gap-3 border-b-2 border-brand-green bg-white px-4 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-green"
@@ -77,16 +78,15 @@ export function Sidebar() {
         </span>
       </Link>
 
-      <nav className="flex-1 overflow-y-auto px-2 py-3">
+      <nav className="flex-1 overflow-y-auto px-3 py-4">
         {NAV.map((group, i) => (
-          <div key={i} className="mb-4">
+          <div key={i} className="mb-5">
             {group.title && (
-              // Titres de groupe : blanc atténué sur vert encre (≥ 4,5:1 à /85)
-              <p className="px-2.5 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-white/85">
+              <p className="px-2.5 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-brand-blue-dark">
                 {group.title}
               </p>
             )}
-            <ul className="space-y-0.5">
+            <ul className="space-y-1">
               {group.items.map(({ href, label, icon: Icon, count }) => {
                 const active = pathname === href || pathname.startsWith(href + "/");
                 return (
@@ -96,10 +96,10 @@ export function Sidebar() {
                       aria-current={active ? "page" : undefined}
                       className={cn(
                         "group/nav relative flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm transition-colors outline-none",
-                        "focus-visible:ring-2 focus-visible:ring-sidebar-ring",
+                        "focus-visible:ring-2 focus-visible:ring-brand-green/50",
                         active
-                          ? "bg-white/15 font-medium text-white"
-                          : "text-white/85 hover:bg-white/10 hover:text-white",
+                          ? "bg-brand-green-ink font-medium text-white shadow-sm"
+                          : "text-brand-green-dark hover:bg-white hover:shadow-sm",
                       )}
                     >
                       {active && (
@@ -111,10 +111,8 @@ export function Sidebar() {
                       )}
                       <Icon
                         className={cn(
-                          "size-4 transition-colors",
-                          active
-                            ? "text-brand-yellow"
-                            : "text-white/70 group-hover/nav:text-brand-yellow",
+                          "size-4 shrink-0 transition-colors",
+                          active ? "text-brand-yellow" : "text-brand-green group-hover/nav:text-brand-green-ink",
                         )}
                       />
                       <span className="truncate">{label}</span>
@@ -133,15 +131,13 @@ export function Sidebar() {
         ))}
       </nav>
 
-      {/* Pied : disque jaune + raison sociale, blanc atténué sur vert encre */}
-      <div className="border-t border-white/20 px-4 py-3 text-[11px] leading-relaxed">
-        <span className="flex items-center gap-2 text-white/90">
-          <span aria-hidden className="inline-block size-2.5 shrink-0 rounded-full bg-brand-yellow" />
+      {/* Pied : logo miniature CSS + raison sociale */}
+      <div className="border-t border-brand-green/20 bg-white/60 px-4 py-3 text-[11px] leading-relaxed">
+        <span className="flex items-center gap-2.5 font-medium text-brand-green-dark">
+          <span aria-hidden className="brand-dot" />
           Innovative &amp; Sustainable Solutions
         </span>
-        <span className="block pl-[18px] text-white/70">
-          Leading territories decarbonisation in Africa
-        </span>
+        <span className="block pl-[22px] text-muted-foreground">Leading territories decarbonisation in Africa</span>
       </div>
     </aside>
   );
