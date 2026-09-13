@@ -175,11 +175,16 @@
      sous le contenu (z-index -1 dans un contexte isolé). Aucun dégradé. --hero-scale règle la taille. */
   .brand-hero {
     --hero-scale: 1;
+    --hero-bg: var(--brand-green-ink);
     position: relative;
     isolation: isolate;
     overflow: hidden;
-    background-color: var(--brand-green-ink);
+    background-color: var(--hero-bg);
     color: #ffffff;
+  }
+  /* Variante bleu lagon (dashboard) : même motif, autre couleur — texte blanc 6,5:1 */
+  .brand-hero-blue {
+    --hero-bg: var(--brand-blue-dark);
   }
   .brand-hero::before {
     /* grand arc extérieur (côtés gauche/bas transparents = arc, pas anneau) */
@@ -212,7 +217,7 @@
     border-radius: 9999px;
     background-color: color-mix(in srgb, var(--brand-yellow) 55%, transparent);
     box-shadow:
-      0 0 0 calc(1rem * var(--hero-scale)) var(--brand-green-ink),
+      0 0 0 calc(1rem * var(--hero-scale)) var(--hero-bg),
       0 0 0 calc(2rem * var(--hero-scale)) color-mix(in srgb, #ffffff 22%, transparent);
   }
   .brand-hero-sm {

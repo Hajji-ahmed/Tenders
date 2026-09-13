@@ -57,8 +57,8 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <PageHeader eyebrow="Pilotage" title="Dashboard" description="Vue d'ensemble de l'activité appels d'offres" />
 
-      {/* Bandeau héros : même vocabulaire que le panneau de connexion (vert encre, disque/arcs, tiret jaune, CTA jaune) */}
-      <section data-surface="inverse" className="brand-hero brand-hero-sm rounded-xl px-6 py-6">
+      {/* Bandeau héros : bleu lagon (4e couleur), motif disque/arcs, tiret jaune, CTA jaune — se distingue de la sidebar verte */}
+      <section data-surface="inverse" className="brand-hero brand-hero-blue brand-hero-sm rounded-xl px-6 py-6">
         <div className="flex flex-wrap items-end justify-between gap-6">
           <div className="max-w-xl space-y-3">
             <div aria-hidden className="h-1 w-10 rounded-full bg-brand-yellow" />
