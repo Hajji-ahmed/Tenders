@@ -198,6 +198,15 @@
     color: var(--brand-green-dark);
     box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand-green) 25%, transparent);
   }
+  /* Variante bleu lagon clair (dashboard) : surface claire bleutée, texte bleu foncé, disque jaune */
+  .brand-hero-light-blue {
+    --hero-bg: var(--brand-blue-tint);
+    --hero-arc: color-mix(in srgb, var(--brand-blue) 22%, transparent);
+    --hero-ring: color-mix(in srgb, var(--brand-blue) 45%, transparent);
+    --hero-disc: var(--brand-yellow);
+    color: var(--brand-blue-dark);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand-blue) 25%, transparent);
+  }
   .brand-hero::before {
     /* grand arc extérieur (côtés gauche/bas transparents = arc, pas anneau) */
     content: "";
