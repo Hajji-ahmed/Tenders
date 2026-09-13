@@ -10,6 +10,8 @@ os.environ["DATABASE_URL"] = os.environ.get(
 os.environ.setdefault("SECRET_KEY", "test-secret-key-test-secret-key-0123456789")
 os.environ.setdefault("STORAGE_BACKEND", "local")
 
+from datetime import date, timedelta  # noqa: E402
+
 import pytest  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
 from sqlalchemy import text  # noqa: E402
@@ -21,7 +23,17 @@ from app.connectors.storage.local import LocalStorage  # noqa: E402
 from app.core.db import get_db, make_engine  # noqa: E402
 from app.core.security import hash_password  # noqa: E402
 from app.main import create_app  # noqa: E402
-from app.models import Base, User  # noqa: E402
+from app.models import (  # noqa: E402
+    Base,
+    Certification,
+    CertificationCategory,
+    Company,
+    CompanyProfile,
+    Project,
+    Technology,
+    TechnologyCategory,
+    User,
+)
 
 TEST_DB_LOCK_ID = 424242  # verrou consultatif : une seule session pytest à la fois sur tender_test
 
@@ -90,6 +102,45 @@ def user(db):
 def auth_client(client, user) -> TestClient:
     client.post("/api/v1/auth/login", json={"email": user.email, "password": "Password123!"})
     return client
+
+
+@pytest.fixture
+def company(db) -> Company:
+    """Entreprise exemple du projet, « InnoSustain » : 3 technologies, 1 certification valide,
+    1 expirée, 2 projets. C'est l'entreprise unique que `CompanyService.get_or_create` renvoie."""
+    today = date.today()
+    c = Company(
+        legal_name="Innovative & Sustainable Solutions",
+        trade_name="InnoSustain",
+        country="MA",
+        city="Casablanca",
+        sectors=["Environnement", "Énergie", "Conseil"],
+        profile=CompanyProfile(
+            positioning="Cabinet de conseil en transition énergétique et environnementale au Maroc"
+        ),
+        technologies=[
+            Technology(name="Python", category=TechnologyCategory.language),
+            Technology(name="PostgreSQL", category=TechnologyCategory.database),
+            Technology(name="Power BI", category=TechnologyCategory.tool),
+        ],
+        certifications=[
+            Certification(
+                name="ISO 14001",
+                category=CertificationCategory.qualite,
+                expires_at=today + timedelta(days=365),
+            ),
+            Certification(
+                name="ISO 9001", category=CertificationCategory.qualite, expires_at=today - timedelta(days=30)
+            ),
+        ],
+        projects=[
+            Project(title="Audit énergétique", client="Office National X", sector="Énergie"),
+            Project(title="Plan climat territorial", client="Ville Y", sector="Environnement"),
+        ],
+    )
+    db.add(c)
+    db.flush()
+    return c
 
 
 @pytest.fixture
