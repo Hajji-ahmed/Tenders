@@ -1823,14 +1823,14 @@ from app.models.company import Certification, Company
 from app.models.document import CompanyDocument, DocumentCategory, DocumentStatus
 
 def test_document_expiry(db):
-    c = Company(legal_name="INKWAY"); db.add(c); db.flush()
+    c = Company(legal_name="Innovative & Sustainable Solutions", trade_name="InnoSustain"); db.add(c); db.flush()
     d = CompanyDocument(company_id=c.id, name="Kbis", category=DocumentCategory.administratif, storage_key="k",
                         mime_type="application/pdf", size_bytes=10, sha256="a"*64, status=DocumentStatus.valid,
                         expires_at=date.today() - timedelta(days=1))
     assert d.is_expired and not d.is_usable
 
 def test_certification_validity(db):
-    c = Company(legal_name="INKWAY"); db.add(c); db.flush()
+    c = Company(legal_name="Innovative & Sustainable Solutions", trade_name="InnoSustain"); db.add(c); db.flush()
     cert = Certification(company_id=c.id, name="ISO 27001", expires_at=date.today() + timedelta(days=30))
     assert cert.is_valid
 ```
@@ -1963,7 +1963,7 @@ class DocumentVersion(UUIDMixin, Base):
 - Test: `backend/tests/api/test_company.py`
 
 **Interfaces:**
-- Produces: `CompanyService.get_or_create(db) -> Company` (entreprise unique) ; `Page[T]` ; `build_crud_router(model, create_schema, update_schema, read_schema, *, prefix, tag, order_by) -> APIRouter` ; schémas `CompanyProfileIn/Out`, `SkillIn/Out`, `TechnologyIn/Out`, `CertificationIn/Out`, `ExpertIn/Out`, `ProjectIn/Out`, `ReferenceIn/Out` ; fixture `company` (INKWAY, 2 secteurs, 3 technos, 1 certif valide, 1 expirée, 2 projets).
+- Produces: `CompanyService.get_or_create(db) -> Company` (entreprise unique) ; `Page[T]` ; `build_crud_router(model, create_schema, update_schema, read_schema, *, prefix, tag, order_by) -> APIRouter` ; schémas `CompanyProfileIn/Out`, `SkillIn/Out`, `TechnologyIn/Out`, `CertificationIn/Out`, `ExpertIn/Out`, `ProjectIn/Out`, `ReferenceIn/Out` ; fixture `company` (InnoSustain — « Innovative & Sustainable Solutions », 3 secteurs Environnement/Énergie/Conseil, 3 technos, 1 certif ISO 14001 valide, 1 ISO 9001 expirée, 2 projets).
 
 - [ ] **Step 1 : Tests**
 
@@ -1973,7 +1973,7 @@ def test_get_profile_creates_company(auth_client):
     assert r.status_code == 200 and r.json()["legal_name"] == ""
 
 def test_put_profile(auth_client):
-    body = {"legal_name": "INKWAY", "country": "MA", "city": "Casablanca", "sectors": ["IT", "Conseil"], "positioning": "ESN"}
+    body = {"legal_name": "Innovative & Sustainable Solutions", "trade_name": "InnoSustain", "country": "MA", "city": "Casablanca", "sectors": ["Environnement", "Énergie", "Conseil"], "positioning": "Solutions innovantes et durables"}
     r = auth_client.put("/api/v1/company/profile", json=body)
     assert r.status_code == 200 and r.json()["sectors"] == ["IT", "Conseil"] and r.json()["positioning"] == "ESN"
 
@@ -2125,7 +2125,7 @@ for model, cin, cup, cout, name in [
 
 `app/schemas/company.py` : pour chaque entité, `XxxIn` (champs requis : `name`/`title`/`full_name`/`client_name`), `XxxUpdate` (tous optionnels), `XxxOut` (`from_attributes`, + `is_valid: bool` pour `CertificationOut`). `CompanyProfileOut` = champs `Company` + `positioning` + `ai_summary` + `counts: dict[str,int]` (skills, technologies, certifications, experts, projects, references, documents) avec `@classmethod from_company(c)`.
 
-- [ ] **Step 4 : Fixture `company`** dans conftest (crée INKWAY avec les données citées dans Interfaces via les modèles, `db.flush()`). **Run** → PASS.
+- [ ] **Step 4 : Fixture `company`** dans conftest (crée InnoSustain avec les données citées dans Interfaces via les modèles, `db.flush()`). **Run** → PASS.
 - [ ] **Step 5 : Commit** `feat(company): profile endpoint and generic CRUD for sub-resources`.
 
 ---
@@ -2133,7 +2133,7 @@ for model, cin, cup, cout, name in [
 ### Task 2.3 : Documents de l'entreprise (upload, versions, expiration RB-007)
 
 **Files:**
-- Create: `backend/app/services/documents.py`, `backend/app/schemas/document.py`, `backend/app/api/v1/documents.py`, `backend/app/workers/tasks/scheduled.py`, `backend/tests/fixtures/sample.pdf` (1 page « Attestation fiscale INKWAY 2026 »), `sample.docx`, `sample.xlsx`, `sample.txt`
+- Create: `backend/app/services/documents.py`, `backend/app/schemas/document.py`, `backend/app/api/v1/documents.py`, `backend/app/workers/tasks/scheduled.py`, `backend/tests/fixtures/sample.pdf` (1 page « Attestation fiscale InnoSustain 2026 »), `sample.docx`, `sample.xlsx`, `sample.txt`
 - Modify: `backend/app/api/router.py`, `backend/app/workers/celery_app.py` (include `scheduled`, beat), `backend/app/core/config.py` (`allowed_upload_mimes`)
 - Test: `backend/tests/unit/test_documents_service.py`, `backend/tests/api/test_documents.py`
 
@@ -2287,7 +2287,7 @@ Beat (dans `celery_app.py`, `from celery.schedules import crontab`) : `celery_ap
 
 - [ ] **Step 1 : Test `EntityTable.test.tsx`** : rend 2 lignes, clic « Supprimer » appelle `onDelete(row)` ; état vide affiche « Aucun élément ».
 - [ ] **Step 2 : Run** → FAIL. **Step 3 : Implémenter** `EntityTable`, `EntityDialog` (react-hook-form + zod, champs texte/date/select/tags), la page avec `<Tabs>` : Informations (ProfileForm : raison sociale, nom commercial, description, pays, ville, adresse, site, email, téléphone, secteurs (tags), positionnement), puis un onglet par sous-ressource avec bouton « Ajouter », tableau, édition, suppression avec confirmation. Certifications : badge rouge « Expirée » si `!is_valid`.
-- [ ] **Step 4 : Run** `npm test` → PASS ; vérification manuelle : créer le profil INKWAY complet.
+- [ ] **Step 4 : Run** `npm test` → PASS ; vérification manuelle : créer le profil InnoSustain complet.
 - [ ] **Step 5 : Commit** `feat(frontend): company profile page with sub-resource tabs`.
 
 ---
@@ -2303,7 +2303,7 @@ Beat (dans `celery_app.py`, `from celery.schedules import crontab`) : `celery_ap
 
 - [ ] **Step 1 : Test** : `DocumentsTable` affiche badge « Expiré » pour une ligne `is_expired: true`. **Step 2 :** FAIL. **Step 3 :** Implémenter : filtres (catégorie, statut, recherche), upload (drag & drop + métadonnées), drawer de détail (versions, téléchargement, nouvelle version, archiver). **Step 4 :** PASS. **Step 5 : Commit** `feat(frontend): company documents page`.
 
-**Fin de Phase 2 — critères :** profil INKWAY saisi de bout en bout ; un document expiré est marqué et exclu de `usable_only=true` ; tests verts.
+**Fin de Phase 2 — critères :** profil InnoSustain saisi de bout en bout ; un document expiré est marqué et exclu de `usable_only=true` ; tests verts.
 
 ---
 
@@ -3260,8 +3260,8 @@ class StatsOut(BaseModel):
 - Modify: `.github/workflows/ci.yml` (job `e2e` : compose postgres/redis, backend en `APP_ENV=test` avec fakes, front `next build && next start`, `npx playwright test`)
 
 **Interfaces:**
-- Produces: en `APP_ENV=test`, `deps.get_llm()` renvoie un `ScriptedLLM` qui répond selon le type de sortie demandé (candidat AO, analyse, exigences, score, questions, sections) avec des données fixes réalistes ; `POST /testing/seed` crée utilisateur, profil INKWAY, 1 source fake, templates.
-- Scénario `critical-path.spec.ts` : login → profil (vérifier INKWAY) → lancer une recherche → 1 opportunité apparaît avec score → GO → analyser → 3 exigences visibles → répondre à une question → créer le dossier → générer 2 documents → éditer une section → accepter toutes les sections → valider le document → « Dossier prêt » → statut `PRET` sur le Kanban → entrée dans l'historique.
+- Produces: en `APP_ENV=test`, `deps.get_llm()` renvoie un `ScriptedLLM` qui répond selon le type de sortie demandé (candidat AO, analyse, exigences, score, questions, sections) avec des données fixes réalistes ; `POST /testing/seed` crée utilisateur, profil InnoSustain, 1 source fake, templates.
+- Scénario `critical-path.spec.ts` : login → profil (vérifier InnoSustain) → lancer une recherche → 1 opportunité apparaît avec score → GO → analyser → 3 exigences visibles → répondre à une question → créer le dossier → générer 2 documents → éditer une section → accepter toutes les sections → valider le document → « Dossier prêt » → statut `PRET` sur le Kanban → entrée dans l'historique.
 - `docs/09-plan-tests.md` : pyramide (unitaires services / API / workers / composants / E2E), commandes, couverture cible (backend ≥ 80 % sur `services/` et `api/`), stratégie de fakes, jeux de fixtures.
 
 - [ ] **Step 1 :** écrire le scénario (échoue). **Step 2 :** implémenter `ScriptedLLM`, routes de test, ajustements. **Step 3 :** `npx playwright test` → PASS localement et en CI. **Step 4 : Commit** `test(e2e): critical path scenario, scripted LLM, test plan doc`.

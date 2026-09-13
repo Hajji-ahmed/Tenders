@@ -13,7 +13,7 @@ def create_app() -> FastAPI:
     # Swagger / OpenAPI uniquement en développement : en production, l'API est privée.
     expose_docs = settings.app_env == "dev"
     app = FastAPI(
-        title="Tender AI",
+        title="InnoSustain — Tenders API",
         version="0.1.0",
         docs_url="/api/docs" if expose_docs else None,
         redoc_url=None,

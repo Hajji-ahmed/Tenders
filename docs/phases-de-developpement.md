@@ -41,7 +41,7 @@ Dossier prêt ◄── Validation ◄── Génération ◄── Questions �
 |---|---|---|---|---|
 | 0 | S1 | **Cadrage** | Dépôt git, docs, modèle de données, liste des API | Les 3 PDF + docs 04/05/06 dans `docs/` |
 | 1 | S2 | **Fondations** | Docker (Postgres+pgvector, Redis, MinIO), FastAPI, Next.js, login, jobs asynchrones, stockage, CI | `docker compose up` + connexion réussie |
-| 2 | S3 | **Profil entreprise & documents** | Page profil (infos, compétences, technos, certifs, experts, projets, références) + upload de documents avec versions et expiration | Profil INKWAY saisi, un document expiré est marqué |
+| 2 | S3 | **Profil entreprise & documents** | Page profil (infos, compétences, technos, certifs, experts, projets, références) + upload de documents avec versions et expiration | Profil InnoSustain saisi, un document expiré est marqué |
 | 3 | S4 | **Recherche & collecte** | Paramètres de recherche, sources (Tavily, RSS, portails), crawler, extraction IA d'une fiche d'AO | « Lancer la recherche » crée des opportunités |
 | 4 | S5 | **Normalisation & dédup** | Modèle commun, empreinte, détection de doublons (règles + fuzzy + sémantique), expiration automatique | 2 annonces du même AO = 1 seule fiche |
 | 5 | S6 | **Scoring & GO/NO-GO** | Score /100 expliqué (8 critères pondérés), justification IA, décision GO/NO-GO, Kanban, historique des statuts | Chaque AO a un score + justification |

@@ -4,12 +4,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 export default function DashboardPage() {
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
+        <p className="text-sm text-muted-foreground">Vue d&apos;ensemble de l&apos;activité appels d&apos;offres</p>
+      </div>
       <Card>
         <CardHeader>
           <CardTitle>Bienvenue</CardTitle>
           <CardDescription>
-            La plateforme est prête. Commencez par renseigner le profil de l&apos;entreprise.
+            La plateforme est prête. Commencez par renseigner le profil d&apos;InnoSustain.
           </CardDescription>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground">
