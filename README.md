@@ -1,6 +1,8 @@
 # Tenders — Plateforme IA de gestion des appels d'offres
 
-Application web mono-utilisateur qui recherche et collecte les appels d'offres, les déduplique, les score, analyse leurs documents, vérifie l'éligibilité de l'entreprise, pose les questions manquantes et prépare les documents de candidature — avec validation humaine à chaque étape.
+Application web mono-utilisateur pour **InnoSustain** (Innovative & Sustainable Solutions) : elle recherche et collecte les appels d'offres, les déduplique, les score, analyse leurs documents, vérifie l'éligibilité de l'entreprise, pose les questions manquantes et prépare les documents de candidature — avec validation humaine à chaque étape.
+
+Charte : vert `#0a9a47` (marque, actions), jaune `#ffcb05` (accent), noir `#0b0f0d` (barre latérale) — définie dans `frontend/src/app/globals.css` ; logo vectoriel dans `frontend/src/components/brand/Logo.tsx`.
 
 ## Stack
 

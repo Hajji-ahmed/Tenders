@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Tender AI",
-  description: "Plateforme intelligente de gestion des appels d'offres",
+  title: { default: "InnoSustain — Appels d'offres", template: "%s · InnoSustain" },
+  description: "Plateforme intelligente de gestion des appels d'offres — Innovative & Sustainable Solutions",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
