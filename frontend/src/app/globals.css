@@ -4,47 +4,48 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
-  Charte InnoSustain — dérivée du logo « Innovative & Sustainable Solutions » :
-  vert (marque, actions), jaune (accent, mise en avant), noir (barre latérale).
+  Charte InnoSustain — couleurs exactes du logo et du site innosustain.africa :
+  vert #059541 (marque, actions), jaune #fdcd0e (accent), vert foncé #236b41 (hover),
+  fond #fbfbfb, texte #2f2f2f, police Open Sans ; barre latérale sombre comme le fond du logo.
   Le contenu reste neutre et clair : l'interface sert les données.
 */
 :root {
-  --brand-green: #0a9a47;
-  --brand-green-dark: #0b5d2d;
-  --brand-yellow: #ffcb05;
+  --brand-green: #059541;
+  --brand-green-dark: #236b41;
+  --brand-yellow: #fdcd0e;
   --brand-black: #0b0f0d;
 
   --radius: 0.5rem;
 
-  --background: #f5f7f6;
-  --foreground: #151a17;
+  --background: #fbfbfb;
+  --foreground: #2f2f2f;
   --card: #ffffff;
-  --card-foreground: #151a17;
+  --card-foreground: #2f2f2f;
   --popover: #ffffff;
-  --popover-foreground: #151a17;
+  --popover-foreground: #2f2f2f;
   --primary: var(--brand-green);
   --primary-foreground: #ffffff;
-  --secondary: #e6f3ea;
+  --secondary: #e6f4ec;
   --secondary-foreground: var(--brand-green-dark);
-  --muted: #edf0ee;
-  --muted-foreground: #5d6963;
-  --accent: #e6f3ea;
+  --muted: #f1f3f2;
+  --muted-foreground: #6b7280;
+  --accent: #e6f4ec;
   --accent-foreground: var(--brand-green-dark);
   --destructive: #d23b2f;
   --destructive-foreground: #ffffff;
-  --border: #dbe2dd;
-  --input: #cfd8d2;
+  --border: #e3e7e5;
+  --input: #d3dad6;
   --ring: var(--brand-green);
 
-  --success: #0a9a47;
+  --success: #059541;
   --success-foreground: #ffffff;
   --warning: var(--brand-yellow);
-  --warning-foreground: #3d3200;
+  --warning-foreground: #4a3b00;
 
-  --chart-1: #0a9a47;
-  --chart-2: #ffcb05;
-  --chart-3: #0b5d2d;
-  --chart-4: #7bc99a;
+  --chart-1: #059541;
+  --chart-2: #fdcd0e;
+  --chart-3: #236b41;
+  --chart-4: #c89316;
   --chart-5: #9aa6a0;
 
   --sidebar: var(--brand-black);
@@ -83,7 +84,7 @@
 }
 
 @theme inline {
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-open-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 
   --radius-sm: calc(var(--radius) - 4px);

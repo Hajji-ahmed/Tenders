@@ -7,7 +7,12 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     globals: true,
-    pool: "threads", // le pool "forks" expire sur Windows quand le chemin contient des espaces
+    // Le pool "forks" expire sous Windows quand le chemin contient des espaces.
+    pool: "threads",
+    // Un worker réutilisé pour tous les fichiers : ~18 s de démarrage économisés par fichier sur une
+    // machine chargée (nos tests n'ont pas d'état global partagé ; cleanup() après chaque test).
+    isolate: false,
+    fileParallelism: false,
     setupFiles: ["./tests/setup.ts"],
     include: ["tests/**/*.test.{ts,tsx}"],
   },

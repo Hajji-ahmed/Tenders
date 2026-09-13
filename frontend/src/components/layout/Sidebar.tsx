@@ -65,7 +65,7 @@ export function Sidebar() {
         href="/dashboard"
         className="flex h-16 items-center gap-3 border-b border-sidebar-border px-4 outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
       >
-        <LogoMark className="size-9" />
+        <LogoMark size={36} priority />
         <span className="flex flex-col leading-tight">
           <span className="text-sm font-semibold text-white">InnoSustain</span>
           <span className="text-[11px] text-sidebar-foreground/70">Appels d&apos;offres</span>
@@ -89,13 +89,19 @@ export function Sidebar() {
                       href={href}
                       aria-current={active ? "page" : undefined}
                       className={cn(
-                        "flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm transition-colors outline-none",
+                        "relative flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm transition-colors outline-none",
                         "focus-visible:ring-2 focus-visible:ring-sidebar-ring",
                         active
                           ? "bg-sidebar-primary/15 font-medium text-white"
                           : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-white",
                       )}
                     >
+                      {active && (
+                        <span
+                          aria-hidden
+                          className="absolute inset-y-1.5 left-0 w-0.5 rounded-full bg-brand-yellow"
+                        />
+                      )}
                       <Icon className={cn("size-4", active ? "text-brand-green" : "text-sidebar-foreground/60")} />
                       {label}
                     </Link>
@@ -107,8 +113,10 @@ export function Sidebar() {
         ))}
       </nav>
 
-      <div className="border-t border-sidebar-border px-4 py-3 text-[11px] text-sidebar-foreground/50">
+      <div className="border-t border-sidebar-border px-4 py-3 text-[11px] leading-relaxed text-sidebar-foreground/50">
         Innovative &amp; Sustainable Solutions
+        <br />
+        <span className="text-sidebar-foreground/35">Leading territories decarbonisation in Africa</span>
       </div>
     </aside>
   );
