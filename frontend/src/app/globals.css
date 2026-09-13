@@ -176,15 +176,27 @@
   .brand-hero {
     --hero-scale: 1;
     --hero-bg: var(--brand-green-ink);
+    --hero-arc: color-mix(in srgb, #ffffff 14%, transparent);
+    --hero-ring: color-mix(in srgb, #ffffff 22%, transparent);
+    --hero-disc: color-mix(in srgb, var(--brand-yellow) 55%, transparent);
     position: relative;
     isolation: isolate;
     overflow: hidden;
     background-color: var(--hero-bg);
     color: #ffffff;
   }
-  /* Variante bleu lagon (dashboard) : même motif, autre couleur — texte blanc 6,5:1 */
+  /* Variante bleu lagon : même motif, autre couleur — texte blanc 6,5:1 */
   .brand-hero-blue {
     --hero-bg: var(--brand-blue-dark);
+  }
+  /* Variante vert faible (dashboard) : surface claire, texte vert foncé, motif aux couleurs du logo */
+  .brand-hero-light {
+    --hero-bg: var(--brand-green-tint);
+    --hero-arc: color-mix(in srgb, var(--brand-green) 22%, transparent);
+    --hero-ring: color-mix(in srgb, var(--brand-green) 45%, transparent);
+    --hero-disc: var(--brand-yellow);
+    color: var(--brand-green-dark);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand-green) 25%, transparent);
   }
   .brand-hero::before {
     /* grand arc extérieur (côtés gauche/bas transparents = arc, pas anneau) */
@@ -199,7 +211,7 @@
     translate: 0 -50%;
     rotate: -30deg;
     border-radius: 9999px;
-    border: calc(3rem * var(--hero-scale)) solid color-mix(in srgb, #ffffff 14%, transparent);
+    border: calc(3rem * var(--hero-scale)) solid var(--hero-arc);
     border-left-color: transparent;
     border-bottom-color: transparent;
   }
@@ -215,10 +227,10 @@
     height: calc(6rem * var(--hero-scale));
     translate: 0 -50%;
     border-radius: 9999px;
-    background-color: color-mix(in srgb, var(--brand-yellow) 55%, transparent);
+    background-color: var(--hero-disc);
     box-shadow:
       0 0 0 calc(1rem * var(--hero-scale)) var(--hero-bg),
-      0 0 0 calc(2rem * var(--hero-scale)) color-mix(in srgb, #ffffff 22%, transparent);
+      0 0 0 calc(2rem * var(--hero-scale)) var(--hero-ring);
   }
   .brand-hero-sm {
     --hero-scale: 0.6;

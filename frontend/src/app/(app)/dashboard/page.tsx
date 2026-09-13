@@ -57,15 +57,15 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <PageHeader eyebrow="Pilotage" title="Dashboard" description="Vue d'ensemble de l'activité appels d'offres" />
 
-      {/* Bandeau héros : bleu lagon (4e couleur), motif disque/arcs, tiret jaune, CTA jaune — se distingue de la sidebar verte */}
-      <section data-surface="inverse" className="brand-hero brand-hero-blue brand-hero-sm rounded-xl px-6 py-6">
+      {/* Bandeau héros : vert faible (surface claire), motif disque jaune / arcs verts, tiret jaune, CTA jaune */}
+      <section className="brand-hero brand-hero-light brand-hero-sm rounded-xl px-6 py-6">
         <div className="flex flex-wrap items-end justify-between gap-6">
           <div className="max-w-xl space-y-3">
             <div aria-hidden className="h-1 w-10 rounded-full bg-brand-yellow" />
             <h2 className="text-xl font-semibold tracking-tight">
               Bienvenue sur l&apos;espace appels d&apos;offres d&apos;InnoSustain
             </h2>
-            <p className="text-sm leading-relaxed text-white/85">
+            <p className="text-sm leading-relaxed text-brand-green-dark/85">
               Les indicateurs (opportunités, scores, échéances) apparaîtront ici. Commencez par les trois étapes
               ci-dessous.
             </p>
@@ -76,7 +76,7 @@ export default function DashboardPage() {
               Voir les opportunités
               <ArrowRight data-icon="inline-end" />
             </Link>
-            <Link href="/search-profiles" className={buttonVariants({ variant: "outline-inverse" })}>
+            <Link href="/search-profiles" className={buttonVariants({ variant: "outline" })}>
               Configurer la recherche
             </Link>
           </div>
