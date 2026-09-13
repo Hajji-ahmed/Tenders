@@ -1,13 +1,14 @@
 import * as React from "react"
 import { cn } from "cn"
 
-type CardAccent = "none" | "green" | "yellow" | "deep"
+type CardAccent = "none" | "green" | "yellow" | "blue" | "deep"
 
-// Liseré de 3 px en tête : vert (activité), jaune (signal), vert foncé (structure). Un seul jaune par écran.
+// Liseré de 3 px en tête : vert (activité), jaune (signal), bleu (information), vert foncé (structure).
 const CARD_ACCENT: Record<CardAccent, string> = {
   none: "",
   green: "border-t-[3px] border-t-brand-green",
   yellow: "border-t-[3px] border-t-brand-yellow",
+  blue: "border-t-[3px] border-t-brand-blue",
   deep: "border-t-[3px] border-t-brand-green-dark",
 }
 

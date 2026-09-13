@@ -31,6 +31,8 @@ const badgeVariants = cva(
         inverse: "bg-brand-green-ink text-white [a]:hover:bg-brand-ink-soft",
         // Clôturé / inactif
         muted: "bg-muted text-muted-foreground",
+        // Information / repérage : bleu lagon (4e couleur) — en préparation, source, catégorie
+        info: "border-brand-blue/30 bg-brand-blue-tint text-brand-blue-dark [a]:hover:bg-brand-blue/15",
       },
     },
     defaultVariants: {

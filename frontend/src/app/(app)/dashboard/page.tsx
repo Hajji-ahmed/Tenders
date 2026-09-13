@@ -15,20 +15,20 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-type KpiAccent = "green" | "yellow" | "deep";
+type KpiAccent = "green" | "yellow" | "blue";
 
 // Indicateurs provisoires — branchés sur l'API en Phase 11.
-// Liserés : vert (activité), jaune (signal d'échéance), vert foncé (structure) — une fois par écran.
+// Liserés : vert (activité), jaune (signal d'échéance), bleu lagon (information) — le trio, une fois par écran.
 const KPIS: { label: string; value: string; hint: string; icon: LucideIcon; accent: KpiAccent }[] = [
   { label: "Opportunités actives", value: "—", hint: "collectées, non archivées", icon: Briefcase, accent: "green" },
   { label: "Échéances sous 7 jours", value: "—", hint: "à traiter en priorité", icon: CalendarClock, accent: "yellow" },
-  { label: "Documents à renouveler", value: "—", hint: "attestations expirant sous 30 jours", icon: FileClock, accent: "deep" },
+  { label: "Documents à renouveler", value: "—", hint: "attestations expirant sous 30 jours", icon: FileClock, accent: "blue" },
 ];
 
 const KPI_ICON: Record<KpiAccent, string> = {
   green: "bg-brand-green-tint text-brand-green",
   yellow: "bg-brand-yellow text-brand-yellow-ink",
-  deep: "bg-brand-green-ink text-brand-yellow",
+  blue: "bg-brand-blue-tint text-brand-blue",
 };
 
 const STEPS = [
@@ -83,7 +83,7 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* Tuiles indicateurs : cartes blanches, liseré vert / jaune / vert foncé, chiffre vert foncé */}
+      {/* Tuiles indicateurs : cartes blanches, liseré vert / jaune / bleu, chiffre vert foncé */}
       <div className="grid gap-4 md:grid-cols-3">
         {KPIS.map(({ label, value, hint, icon: Icon, accent }) => (
           <Card key={label} accent={accent} size="sm">

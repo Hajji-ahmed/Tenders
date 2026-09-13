@@ -3,7 +3,7 @@ import { cn } from "cn";
 type Props = {
   title: string;
   description?: string;
-  /** Surtitre vert foncé (ex. « Pilotage », « Veille ») */
+  /** Surtitre bleu lagon (ex. « Pilotage », « Veille ») */
   eyebrow?: string;
   /** Compteur jaune à côté du titre (ex. nombre d'opportunités) */
   count?: number;
@@ -19,7 +19,7 @@ export function PageHeader({ title, description, eyebrow, count, actions, classN
     >
       <div className="space-y-1">
         {eyebrow && (
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-green-dark">{eyebrow}</p>
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-blue-dark">{eyebrow}</p>
         )}
         <h1 className="flex items-center gap-2.5 text-2xl font-semibold tracking-tight text-brand-green-dark">
           {title}

@@ -30,7 +30,7 @@ export function Header() {
     // Blanc + filet vert 2 px aligné sur celui du bloc logo de la sidebar
     <header className="flex h-16 shrink-0 items-center justify-between gap-4 border-b-2 border-brand-green bg-white px-6">
       <p className="flex min-w-0 items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-        <span className="truncate">{current?.group ?? "Appels d'offres"}</span>
+        <span className="truncate text-brand-blue-dark">{current?.group ?? "Appels d'offres"}</span>
         <span aria-hidden className="text-brand-yellow">·</span>
         <span className="truncate text-brand-green-dark">{current?.label ?? "InnoSustain"}</span>
       </p>

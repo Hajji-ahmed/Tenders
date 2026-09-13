@@ -8,7 +8,8 @@
   vert #059541, jaune #fdcd0e, vert foncé #236b41, vert encre #047a36, doré #c89316,
   fond #fbfbfb, texte #2f2f2f, gris #8a8fa3, Open Sans.
   Rôles : VERT ENCRE = ossature (sidebar, header, héros, titres) · VERT = action et structure ·
-  JAUNE = signal (compteurs, item actif, un bouton accent par écran). Le contenu reste blanc.
+  JAUNE = signal (compteurs, item actif, un bouton accent par écran) · BLEU LAGON = information et
+  repérage (surtitres, badges info, 3e liseré, graphiques). Le contenu reste blanc.
 */
 :root {
   /* ---- Marque : charte exacte + dérivés nommés (contraste vérifié) ---- */
@@ -22,6 +23,9 @@
   --brand-yellow-tint: #fff7d6;       /* fond des badges « à traiter » */
   --brand-yellow-ink: #4a3b00;        /* texte sur teinte jaune (10,19:1) */
   --brand-gold: #c89316;              /* charte : graphiques, pastilles. Jamais en texte (2,75:1) */
+  --brand-blue: #1b6f8e;              /* bleu lagon (4e couleur) : liserés, icônes, graphiques */
+  --brand-blue-dark: #155a72;         /* texte bleu (6,5:1 sur blanc), surtitres */
+  --brand-blue-tint: #e3f1f5;         /* surface bleue claire : badges info, hover */
   --brand-ink-soft: #0a6b30;          /* hover sur surfaces vert encre */
   --brand-gray: #8a8fa3;              /* charte : icônes secondaires, bordure hover des champs. Jamais en texte (3,21:1) */
 
@@ -55,8 +59,8 @@
   --chart-1: #059541;
   --chart-2: #fdcd0e;
   --chart-3: #236b41;
-  --chart-4: #c89316;
-  --chart-5: #9aa6a0;
+  --chart-4: #1b6f8e;
+  --chart-5: #c89316;
 
   --sidebar: var(--brand-green-ink);          /* barre latérale vert encre, texte blanc (5,47:1) */
   --sidebar-foreground: #ffffff;
@@ -115,6 +119,9 @@
   --color-brand-yellow-tint: var(--brand-yellow-tint);
   --color-brand-yellow-ink: var(--brand-yellow-ink);
   --color-brand-gold: var(--brand-gold);
+  --color-brand-blue: var(--brand-blue);
+  --color-brand-blue-dark: var(--brand-blue-dark);
+  --color-brand-blue-tint: var(--brand-blue-tint);
   --color-brand-ink-soft: var(--brand-ink-soft);
   --color-brand-gray: var(--brand-gray);
 

@@ -71,7 +71,7 @@ export default function LoginPage() {
             <LogoMark size={40} className="hidden lg:block" />
             <div>
               <h2 className="text-2xl font-semibold tracking-tight text-brand-green-dark">Connexion</h2>
-              <p className="text-sm text-muted-foreground">Espace appels d&apos;offres InnoSustain</p>
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-blue-dark">Espace appels d&apos;offres</p>
             </div>
           </div>
           <LoginForm onSubmit={handleSubmit} error={error} />

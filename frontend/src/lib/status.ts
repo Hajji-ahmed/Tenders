@@ -21,7 +21,7 @@ export const TENDER_STATUS = {
   a_qualifier: { label: "À qualifier", variant: "warning-soft" },
   go: { label: "Go", variant: "success" },
   no_go: { label: "No-Go", variant: "muted" },
-  en_preparation: { label: "En préparation", variant: "outline" },
+  en_preparation: { label: "En préparation", variant: "info" },
   soumis: { label: "Déposé", variant: "inverse" },
   gagne: { label: "Gagné", variant: "default" },
   perdu: { label: "Perdu", variant: "destructive" },
