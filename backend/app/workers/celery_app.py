@@ -1,4 +1,5 @@
 from celery import Celery
+from celery.schedules import crontab
 
 from app.core.config import get_settings
 
@@ -9,7 +10,7 @@ celery_app = Celery(
     broker=_settings.redis_url,
     backend=_settings.redis_url,
     # Chaque phase ajoute ici ses modules de tâches (côté worker ; les tests importent app.workers.tasks).
-    include=["app.workers.tasks.demo"],
+    include=["app.workers.tasks.demo", "app.workers.tasks.scheduled"],
 )
 
 celery_app.conf.update(
@@ -27,5 +28,13 @@ celery_app.conf.update(
         "interval_step": 0.5,
         "interval_max": 1,
     },
-    beat_schedule={},  # rempli par les phases 2, 4 et 11
+    # Tâches périodiques (service `beat` du docker-compose) ; complété par les phases 4 et 11.
+    beat_schedule={
+        # RB-007 : chaque nuit à 01:00 UTC, les documents dont la date d'expiration est dépassée
+        # passent `expired`.
+        "refresh-document-expiry": {
+            "task": "tender_ai.scheduled.refresh_document_expiry",
+            "schedule": crontab(hour=1, minute=0),
+        },
+    },
 )
