@@ -13,6 +13,9 @@ export default defineConfig({
     // machine chargée (nos tests n'ont pas d'état global partagé ; cleanup() après chaque test).
     isolate: false,
     fileParallelism: false,
+    // Machine de dev modeste : délais larges pour éviter les faux échecs sous charge.
+    testTimeout: 30_000,
+    hookTimeout: 30_000,
     setupFiles: ["./tests/setup.ts"],
     include: ["tests/**/*.test.{ts,tsx}"],
   },
