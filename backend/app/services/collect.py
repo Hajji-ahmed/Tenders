@@ -13,6 +13,7 @@ from app.connectors.crawl.base import CrawlerProvider
 from app.connectors.extractor import TenderExtractor
 from app.connectors.rss import FakeRss, RssConnector
 from app.connectors.search.base import SearchResult, WebSearchProvider
+from app.core import deps
 from app.core.logging import get_logger
 from app.models import SourceKind, TenderSource
 
@@ -55,14 +56,18 @@ def _describe(e: Exception) -> str:
 class CollectService:
     def __init__(
         self,
-        search: WebSearchProvider,
+        search: WebSearchProvider | None,
         crawler: CrawlerProvider,
         extractor: TenderExtractor,
         *,
         rss: RssConnector | FakeRss,
         js_crawler: CrawlerProvider | None = None,
+        search_unavailable: str | None = None,
     ):
+        """`search=None` (pas de clé Tavily) : seules les sources de type moteur sont en erreur, avec
+        le message `search_unavailable` ; flux RSS et portails fonctionnent normalement."""
         self._search = search
+        self._search_unavailable = search_unavailable or "Moteur de recherche non configuré"
         self._crawler = crawler
         self._js_crawler = js_crawler or crawler
         self._extractor = extractor
@@ -126,6 +131,8 @@ class CollectService:
     def _discover(self, source: TenderSource, queries: list[str]) -> list[SearchResult]:
         config = source.config or {}
         if source.kind == SourceKind.search_engine:
+            if self._search is None:
+                raise RuntimeError(self._search_unavailable)
             results: list[SearchResult] = []
             for query in queries:
                 results.extend(
@@ -169,3 +176,22 @@ class CollectService:
                 if len(found) >= max_links:
                     return found
         return found
+
+
+def build_collect_service() -> CollectService:
+    """Service de collecte branché sur les fournisseurs de `deps` ; le moteur de recherche est
+    optionnel (sans clé, ses sources sont rapportées en erreur, le reste fonctionne)."""
+    search: WebSearchProvider | None
+    unavailable: str | None = None
+    try:
+        search = deps.get_web_search()
+    except RuntimeError as e:
+        search, unavailable = None, str(e)
+    return CollectService(
+        search,
+        deps.get_crawler(),
+        deps.get_tender_extractor(),
+        rss=deps.get_rss(),
+        js_crawler=deps.get_js_crawler(),
+        search_unavailable=unavailable,
+    )

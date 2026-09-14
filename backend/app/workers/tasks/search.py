@@ -7,11 +7,10 @@ from uuid import UUID
 
 from sqlalchemy import select
 
-from app.core import deps
 from app.core.audit import record_audit
 from app.core.logging import get_logger
 from app.models import SearchProfile, TenderSource
-from app.services.collect import CollectService
+from app.services.collect import build_collect_service
 from app.services.ingest import IngestService, IngestStats
 from app.services.query_builder import build_queries
 from app.workers.tracking import set_progress, tracked_task
@@ -32,13 +31,7 @@ def search_tenders(db, job, *, search_profile_id: str) -> dict:
         )
     )
     queries = build_queries(profile)
-    collect = CollectService(
-        deps.get_web_search(),
-        deps.get_crawler(),
-        deps.get_tender_extractor(),
-        rss=deps.get_rss(),
-        js_crawler=deps.get_js_crawler(),
-    )
+    collect = build_collect_service()
     ingest = IngestService(db)
     totals = IngestStats()
     reports: dict[str, dict] = {}

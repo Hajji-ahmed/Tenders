@@ -161,3 +161,15 @@ def test_limit_caps_the_number_of_urls_processed():
     crawler = FakeCrawler({f"https://ok/{i}": page(f"https://ok/{i}", text="x") for i in range(10)})
     report = _service(search, crawler).collect_source(_source(SourceKind.search_engine), ["q"], limit=3)
     assert report.found == 10 and report.fetched == 3 and len(crawler.calls) == 3
+
+
+def test_missing_search_engine_only_breaks_search_engine_sources():
+    rss = FakeRss({"https://feed/rss": [result("https://feed/ao/1", "AO 1")]})
+    crawler = FakeCrawler({"https://feed/ao/1": page("https://feed/ao/1", text="AO")})
+    extractor = FakeTenderExtractor({"https://feed/ao/1": _candidate("https://feed/ao/1")})
+    service = CollectService(None, crawler, extractor, rss=rss, search_unavailable="TAVILY_API_KEY manquante")
+
+    engine = service.collect_source(_source(SourceKind.search_engine), ["q"])
+    assert engine.status == "error" and "TAVILY_API_KEY" in (engine.error or "")
+    feed = service.collect_source(_source(SourceKind.rss, base_url="https://feed/rss"), ["q"])
+    assert feed.status == "ok" and len(feed.candidates) == 1

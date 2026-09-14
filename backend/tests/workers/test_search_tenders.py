@@ -101,3 +101,27 @@ def test_search_job_fails_on_unknown_profile(db, run_jobs_inline):
     )
     db.refresh(job)
     assert job.status == JobStatus.failed and "introuvable" in (job.error or "")
+
+
+def test_search_job_runs_without_search_engine_provider(
+    db, run_jobs_inline, search_profile, two_sources, fake_crawler, fake_extractor, fake_rss, monkeypatch
+):
+    """Sans clé Tavily, la source moteur est en erreur mais les flux RSS alimentent la recherche."""
+    from app.core import deps
+
+    monkeypatch.setattr(deps, "_web_search_override", None)
+    monkeypatch.setattr(
+        deps, "_default_web_search", lambda: (_ for _ in ()).throw(RuntimeError("TAVILY_API_KEY"))
+    )
+    fake_rss.feeds["https://feed/rss"] = [result("https://feed/ao/1", "AO 1")]
+    fake_crawler.pages["https://feed/ao/1"] = page("https://feed/ao/1", text="AO")
+    fake_extractor.mapping["https://feed/ao/1"] = TenderCandidate(
+        is_tender=True, confidence=0.9, title="AO 1", source_url="https://feed/ao/1"
+    )
+
+    job = _enqueue(db, search_profile)
+
+    assert job.status == JobStatus.done, job.error
+    assert job.result["created"] == 1
+    assert job.result["sources"][str(two_sources[0].id)]["status"] == "error"
+    assert "TAVILY_API_KEY" in job.result["sources"][str(two_sources[0].id)]["error"]
