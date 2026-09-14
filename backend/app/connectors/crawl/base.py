@@ -13,6 +13,8 @@ class CrawlResult(BaseModel):
     text: str = ""  # texte nettoyé (html_to_text), vide si la page n'a pas pu être lue
     links: list[str] = Field(default_factory=list)  # liens absolus trouvés dans la page
     fetched_at: datetime = Field(default_factory=lambda: datetime.now(tz=UTC))
+    # Raison d'un échec (réseau, robots.txt, HTTP ≥ 400) ; `status_code=0` = pas de réponse HTTP.
+    error: str | None = None
 
     @property
     def ok(self) -> bool:

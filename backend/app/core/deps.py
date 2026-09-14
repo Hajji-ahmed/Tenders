@@ -16,9 +16,12 @@ from sqlalchemy.orm import Session
 from app.ai.llm import FakeLLM, LLMProvider
 from app.connectors.crawl.base import CrawlerProvider
 from app.connectors.crawl.fake import FakeCrawler
+from app.connectors.crawl.httpx_crawler import HttpxCrawler
+from app.connectors.crawl.playwright_crawler import PlaywrightCrawler
 from app.connectors.extractor import FakeTenderExtractor, TenderExtractor
 from app.connectors.search.base import WebSearchProvider
 from app.connectors.search.fake import FakeWebSearch
+from app.connectors.search.tavily import TavilySearch
 from app.connectors.storage.base import StorageProvider
 from app.connectors.storage.local import LocalStorage
 from app.connectors.storage.s3 import S3Storage
@@ -33,6 +36,7 @@ __all__ = [
     "COOKIE_NAME",
     "get_crawler",
     "get_current_user",
+    "get_js_crawler",
     "get_llm",
     "get_storage",
     "get_tender_extractor",
@@ -60,41 +64,49 @@ def get_storage() -> StorageProvider:
 
 
 def _not_configured(what: str, env_var: str) -> RuntimeError:
-    return RuntimeError(
-        f"Aucun fournisseur {what} configuré ({env_var}) — implémentation réelle en Tâche 3.3/3.4"
-    )
+    return RuntimeError(f"Aucun fournisseur {what} configuré : renseigner {env_var} dans .env")
 
 
 # En APP_ENV=test, les fournisseurs externes sont des fakes vides : aucun test ne sort sur le réseau.
-# Les implémentations réelles (Tavily, httpx/Playwright, OpenAI) sont branchées en 3.3 et 3.4.
+# Hors test, les implémentations réelles sont construites à la demande et mises en cache.
 
 
 @lru_cache
 def _default_web_search() -> WebSearchProvider:
-    if get_settings().is_test:
+    s = get_settings()
+    if s.is_test:
         return FakeWebSearch()
-    raise _not_configured("de recherche web", "TAVILY_API_KEY")
+    if not s.tavily_api_key:
+        raise _not_configured("de recherche web", "TAVILY_API_KEY")
+    return TavilySearch(s.tavily_api_key)
 
 
 @lru_cache
 def _default_crawler() -> CrawlerProvider:
     if get_settings().is_test:
         return FakeCrawler()
-    raise _not_configured("de crawl", "—")
+    return HttpxCrawler()  # pages dynamiques : `get_js_crawler()`
+
+
+@lru_cache
+def _default_js_crawler() -> CrawlerProvider:
+    if get_settings().is_test:
+        return FakeCrawler()
+    return PlaywrightCrawler()
 
 
 @lru_cache
 def _default_llm() -> LLMProvider:
     if get_settings().is_test:
         return FakeLLM()
-    raise _not_configured("LLM", "OPENAI_API_KEY")
+    raise _not_configured("LLM", "OPENAI_API_KEY")  # OpenAILLM branché en Tâche 3.4
 
 
 @lru_cache
 def _default_tender_extractor() -> TenderExtractor:
     if get_settings().is_test:
         return FakeTenderExtractor()
-    raise _not_configured("d'extraction d'appels d'offres", "OPENAI_API_KEY")
+    raise _not_configured("d'extraction d'appels d'offres", "OPENAI_API_KEY")  # Tâche 3.4
 
 
 def get_web_search() -> WebSearchProvider:
@@ -103,6 +115,11 @@ def get_web_search() -> WebSearchProvider:
 
 def get_crawler() -> CrawlerProvider:
     return _crawler_override or _default_crawler()
+
+
+def get_js_crawler() -> CrawlerProvider:
+    """Crawler Chromium pour les sources `render_js: true` ; le même override (fake) qu'en statique."""
+    return _crawler_override or _default_js_crawler()
 
 
 def get_llm() -> LLMProvider:

@@ -101,3 +101,39 @@ def test_deps_default_to_fakes_without_fixtures():
     assert isinstance(deps.get_crawler(), FakeCrawler)
     assert isinstance(deps.get_llm(), FakeLLM)
     assert isinstance(deps.get_tender_extractor(), FakeTenderExtractor)
+
+
+# --- deps : fournisseurs réels hors test --------------------------------------------------------
+
+
+def _settings(**over):
+    from app.core.config import Settings
+
+    base = dict(app_env="dev", secret_key="x" * 40, tavily_api_key="", openai_api_key="")
+    base.update(over)
+    return Settings(**base)
+
+
+def test_deps_build_real_search_and_crawler_outside_tests(monkeypatch):
+    from app.connectors.crawl.httpx_crawler import HttpxCrawler
+    from app.connectors.search.tavily import TavilySearch
+
+    monkeypatch.setattr(deps, "get_settings", lambda: _settings(tavily_api_key="tvly-key"))
+    deps._default_web_search.cache_clear()
+    deps._default_crawler.cache_clear()
+    try:
+        assert isinstance(deps.get_web_search(), TavilySearch)
+        assert isinstance(deps.get_crawler(), HttpxCrawler)
+    finally:
+        deps._default_web_search.cache_clear()
+        deps._default_crawler.cache_clear()
+
+
+def test_deps_fail_clearly_without_tavily_key(monkeypatch):
+    monkeypatch.setattr(deps, "get_settings", lambda: _settings())
+    deps._default_web_search.cache_clear()
+    try:
+        with pytest.raises(RuntimeError, match="TAVILY_API_KEY"):
+            deps.get_web_search()
+    finally:
+        deps._default_web_search.cache_clear()
