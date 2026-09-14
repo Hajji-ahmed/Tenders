@@ -25,6 +25,7 @@ import app.core.deps as deps  # noqa: E402
 from app.ai.llm import FakeLLM  # noqa: E402
 from app.connectors.crawl.fake import FakeCrawler  # noqa: E402
 from app.connectors.extractor import FakeTenderExtractor  # noqa: E402
+from app.connectors.rss import FakeRss  # noqa: E402
 from app.connectors.search.fake import FakeWebSearch  # noqa: E402
 from app.connectors.storage.local import LocalStorage  # noqa: E402
 from app.core.db import get_db, make_engine  # noqa: E402
@@ -37,8 +38,11 @@ from app.models import (  # noqa: E402
     Company,
     CompanyProfile,
     Project,
+    SearchProfile,
+    SourceKind,
     Technology,
     TechnologyCategory,
+    TenderSource,
     User,
 )
 
@@ -115,6 +119,36 @@ def fake_extractor(monkeypatch) -> FakeTenderExtractor:
     fake = FakeTenderExtractor()
     monkeypatch.setattr(deps, "_tender_extractor_override", fake)
     return fake
+
+
+@pytest.fixture
+def fake_rss(monkeypatch) -> FakeRss:
+    fake = FakeRss()
+    monkeypatch.setattr(deps, "_rss_override", fake)
+    return fake
+
+
+@pytest.fixture
+def search_profile(db) -> SearchProfile:
+    """Profil « IT Maroc » : mots-clés SI/ERP, secteur IT, pays MA."""
+    p = SearchProfile(name="IT Maroc", keywords=["SI", "ERP"], sectors=["IT"], countries=["MA"])
+    db.add(p)
+    db.flush()
+    return p
+
+
+@pytest.fixture
+def two_sources(db) -> list[TenderSource]:
+    """Un moteur de recherche (sans restriction de domaine) et un flux RSS."""
+    sources = [
+        TenderSource(
+            name="Tavily", kind=SourceKind.search_engine, config={"include_domains": []}, priority=10
+        ),
+        TenderSource(name="Flux portail", kind=SourceKind.rss, base_url="https://feed/rss", priority=20),
+    ]
+    db.add_all(sources)
+    db.flush()
+    return sources
 
 
 @pytest.fixture

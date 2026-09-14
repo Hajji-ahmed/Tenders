@@ -46,3 +46,19 @@ class RssConnector:
         response = self._client.get(feed_url)
         response.raise_for_status()
         return self.parse(response.text)
+
+
+class FakeRss:
+    """Flux scriptés par URL ; une URL inconnue lève, comme un flux injoignable."""
+
+    source_name = "rss"
+
+    def __init__(self, feeds: dict[str, list[SearchResult]] | None = None):
+        self.feeds: dict[str, list[SearchResult]] = dict(feeds or {})
+        self.calls: list[str] = []
+
+    def fetch(self, feed_url: str) -> list[SearchResult]:
+        self.calls.append(feed_url)
+        if feed_url not in self.feeds:
+            raise ConnectionError(f"Flux RSS injoignable : {feed_url}")
+        return list(self.feeds[feed_url])

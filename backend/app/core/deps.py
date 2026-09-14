@@ -21,6 +21,7 @@ from app.connectors.crawl.httpx_crawler import HttpxCrawler
 from app.connectors.crawl.playwright_crawler import PlaywrightCrawler
 from app.connectors.extractor import FakeTenderExtractor, TenderExtractor
 from app.connectors.llm_extractor import LLMTenderExtractor
+from app.connectors.rss import FakeRss, RssConnector
 from app.connectors.search.base import WebSearchProvider
 from app.connectors.search.fake import FakeWebSearch
 from app.connectors.search.tavily import TavilySearch
@@ -40,6 +41,7 @@ __all__ = [
     "get_current_user",
     "get_js_crawler",
     "get_llm",
+    "get_rss",
     "get_storage",
     "get_tender_extractor",
     "get_web_search",
@@ -50,6 +52,7 @@ _web_search_override: WebSearchProvider | None = None
 _crawler_override: CrawlerProvider | None = None
 _llm_override: LLMProvider | None = None
 _tender_extractor_override: TenderExtractor | None = None
+_rss_override: RssConnector | FakeRss | None = None
 
 
 @lru_cache
@@ -133,6 +136,15 @@ def get_llm() -> LLMProvider:
 
 def get_tender_extractor() -> TenderExtractor:
     return _tender_extractor_override or _default_tender_extractor()
+
+
+@lru_cache
+def _default_rss() -> RssConnector | FakeRss:
+    return FakeRss() if get_settings().is_test else RssConnector()
+
+
+def get_rss() -> RssConnector | FakeRss:
+    return _rss_override or _default_rss()
 
 
 def get_current_user(request: Request, db: Session = Depends(get_db)) -> User:
