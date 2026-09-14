@@ -31,7 +31,7 @@ router = APIRouter(prefix="/documents", tags=["documents"], dependencies=[Depend
 
 
 def _service(db: Session, user: User) -> DocumentService:
-    return DocumentService(db, deps.get_storage(), user_id=user.id)
+    return DocumentService(db, deps.get_storage(), user_id=user.id, author=user.email)
 
 
 def _get_document(db: Session, document_id: UUID) -> CompanyDocument:

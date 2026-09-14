@@ -75,10 +75,18 @@ def validate_upload(filename: str, data: bytes, content_type: str) -> str:
 
 
 class DocumentService:
-    def __init__(self, db: Session, storage: StorageProvider, user_id: uuid.UUID | None = None):
+    def __init__(
+        self,
+        db: Session,
+        storage: StorageProvider,
+        user_id: uuid.UUID | None = None,
+        author: str | None = None,
+    ):
+        """`user_id` alimente l'audit ; `author` est le libellé lisible (email) inscrit sur chaque version."""
         self.db = db
         self.storage = storage
         self.user_id = user_id
+        self.author = author
 
     def upload(
         self, *, filename: str, data: bytes, content_type: str, category: DocumentCategory, **meta
@@ -204,7 +212,7 @@ class DocumentService:
             version_number=doc.version,
             storage_key=doc.storage_key,
             sha256=doc.sha256,
-            author=str(self.user_id) if self.user_id else None,
+            author=self.author,
             changelog=changelog,
         )
         self.db.add(version)

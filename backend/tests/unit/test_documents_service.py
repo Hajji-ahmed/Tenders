@@ -89,7 +89,7 @@ def test_validate_upload_rejects_oversize(monkeypatch):
 
 
 def test_upload_and_version(db, company, storage, user, fixtures_dir):
-    svc = DocumentService(db, storage, user_id=user.id)
+    svc = DocumentService(db, storage, user_id=user.id, author=user.email)
     v1 = (fixtures_dir / "sample.pdf").read_bytes()
     doc = svc.upload(
         filename="attestation-fiscale.pdf",
@@ -113,7 +113,7 @@ def test_upload_and_version(db, company, storage, user, fixtures_dir):
     assert storage.exists(doc.storage_key) and storage.get(doc.storage_key) == v1
     versions = svc.versions(doc)
     assert [v.version_number for v in versions] == [1]
-    assert versions[0].author == str(user.id)
+    assert versions[0].author == user.email  # libellé lisible dans l'historique, pas l'UUID
     assert len(_audit(db, "document.uploaded")) == 1
 
     v2 = b"%PDF-1.4 nouvelle version"
