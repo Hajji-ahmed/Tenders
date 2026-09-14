@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 # Variables d'environnement de test — posées AVANT tout import de l'application.
 # DATABASE_URL est FORCÉE (pas setdefault) : une URL de dev présente dans l'environnement ne doit
@@ -158,3 +159,12 @@ def run_jobs_inline(db, monkeypatch):
         run_job(db, job, REGISTRY[job.type], **kwargs)
 
     monkeypatch.setattr(JobService, "dispatcher", staticmethod(_dispatch))
+
+
+FIXTURES_DIR = Path(__file__).resolve().parent / "fixtures"
+
+
+@pytest.fixture
+def fixtures_dir() -> Path:
+    """Fichiers d'exemple sample.{pdf,docx,xlsx,txt,zip} (générés par tests/fixtures/make_fixtures.py)."""
+    return FIXTURES_DIR
