@@ -7,7 +7,7 @@
   Charte InnoSustain (innosustain.africa) — vert, jaune, blanc uniquement (pas de noir) :
   vert #059541, jaune #fdcd0e, vert foncé #236b41, vert encre #047a36, doré #c89316,
   fond #fbfbfb, texte #2f2f2f, gris #8a8fa3, Open Sans.
-  Rôles : VERT ENCRE = ossature (héros, élément actif, titres) · sidebar en teinte verte claire · VERT = action et structure ·
+  Rôles : VERT FONCÉ = barre latérale · VERT = actions et titres · VERT = action et structure ·
   JAUNE = signal (compteurs, item actif, un bouton accent par écran) · BLEU LAGON = information et
   repérage (surtitres, badges info, 3e liseré, graphiques). Le contenu reste blanc.
 */
@@ -62,27 +62,35 @@
   --chart-4: #1b6f8e;
   --chart-5: #c89316;
 
-  --sidebar: #e9f5ee;                         /* barre latérale vert très clair (teinte de la marque) */
-  --sidebar-foreground: var(--brand-green-dark);
-  --sidebar-primary: var(--brand-green-ink);  /* élément actif : vert encre, texte blanc */
+  --sidebar: #1f5a38;                         /* barre latérale vert foncé (texte blanc 7,9:1) */
+  --sidebar-foreground: #e8f1ec;
+  --sidebar-primary: rgba(255, 255, 255, 0.14); /* élément actif : vert légèrement plus clair */
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #ffffff;                  /* survol : blanc */
-  --sidebar-accent-foreground: var(--brand-green-dark);
-  --sidebar-border: #cfe5d8;
-  --sidebar-ring: var(--brand-green);
+  --sidebar-accent: rgba(255, 255, 255, 0.08); /* survol */
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgba(255, 255, 255, 0.12);
+  --sidebar-ring: var(--brand-yellow);
+
+  /* Cartes SaaS : rayon et ombre uniques pour toute l'application */
+  --radius-card: 1rem;
+  --shadow-card: 0 1px 2px rgba(15, 40, 26, 0.04), 0 4px 16px -8px rgba(15, 40, 26, 0.10);
+  --shadow-card-hover: 0 2px 4px rgba(15, 40, 26, 0.05), 0 12px 28px -10px rgba(15, 40, 26, 0.16);
 
   --scrollbar-thumb: #b9d6c4;                 /* vert-gris discret sur surfaces claires */
 }
 
 
 @theme inline {
-  --font-sans: var(--font-open-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-xl: var(--radius-card);
+  --radius-2xl: calc(var(--radius-card) + 4px);
+  --shadow-card: var(--shadow-card);
+  --shadow-card-hover: var(--shadow-card-hover);
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -255,5 +263,37 @@
     box-shadow:
       0 0 0 2px #ffffff,
       0 0 0 4px var(--brand-green);
+  }
+}
+
+@layer components {
+  /* Forme organique abstraite très légère (coin inférieur droit des cartes) — --blob-color la teinte. */
+  .brand-blob {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .brand-blob::before,
+  .brand-blob::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    pointer-events: none;
+    border-radius: 9999px;
+    background-color: var(--blob-color, var(--brand-green));
+  }
+  .brand-blob::before {
+    right: -3.5rem;
+    bottom: -4rem;
+    width: 11rem;
+    height: 11rem;
+    opacity: 0.09;
+  }
+  .brand-blob::after {
+    right: 1.5rem;
+    bottom: -2rem;
+    width: 5.5rem;
+    height: 5.5rem;
+    opacity: 0.12;
   }
 }

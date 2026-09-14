@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import { Geist_Mono, Open_Sans } from "next/font/google";
+import { Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 
 import { Providers } from "./providers";
 
-// Open Sans : la police du site innosustain.africa.
-const openSans = Open_Sans({
-  variable: "--font-open-sans",
+// Inter : police d'interface SaaS (le site innosustain.africa utilise Open Sans, proche).
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
 });
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="fr" className={`${openSans.variable} ${geistMono.variable} h-full antialiased`}>
+    <html lang="fr" className={`${inter.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <Providers>{children}</Providers>
       </body>

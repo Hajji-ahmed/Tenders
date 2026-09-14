@@ -8,6 +8,7 @@ import {
   FileText,
   History,
   LayoutDashboard,
+  Leaf,
   Rss,
   Search,
   Settings,
@@ -21,11 +22,12 @@ import { cn } from "cn";
 import { LogoMark } from "@/components/brand/Logo";
 
 /** `count` : compteur jaune (notifications non lues, échéances) — absent = rien ne s'affiche. */
-type NavItem = { href: string; label: string; icon: LucideIcon; count?: number };
-type NavGroup = { title?: string; items: NavItem[] };
+export type NavItem = { href: string; label: string; icon: LucideIcon; count?: number };
+export type NavGroup = { title?: string; items: NavItem[] };
 
 export const NAV: NavGroup[] = [
   {
+    title: "Dashboard",
     items: [
       { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
       { href: "/tenders", label: "Opportunités", icon: Briefcase },
@@ -57,87 +59,121 @@ export const NAV: NavGroup[] = [
   },
 ];
 
-/**
- * Barre latérale : vert très clair (teinte de la marque), logo sur blanc, élément actif en vert encre
- * avec liseré jaune, titres de groupe en bleu lagon. Le filet vert 2 px du bloc logo prolonge celui
- * de l'en-tête.
- */
-export function Sidebar() {
-  const pathname = usePathname();
+export const SIDEBAR_WIDTH = "w-[272px]";
 
+export function isActivePath(pathname: string, href: string): boolean {
+  return pathname === href || pathname.startsWith(href + "/");
+}
+
+/** Bloc logo + nom (haut de la barre latérale et du menu mobile). */
+export function SidebarBrand() {
   return (
-    <aside className="flex h-screen w-60 shrink-0 flex-col border-r border-brand-green/20 bg-sidebar text-sidebar-foreground">
-      <Link
-        href="/dashboard"
-        className="flex h-16 items-center gap-3 border-b-2 border-brand-green bg-white px-4 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-green"
-      >
-        <LogoMark size={36} priority />
-        <span className="flex flex-col leading-tight">
-          <span className="text-sm font-semibold text-brand-green-dark">InnoSustain</span>
-          <span className="text-[11px] text-muted-foreground">Appels d&apos;offres</span>
-        </span>
-      </Link>
+    <Link
+      href="/dashboard"
+      className="flex items-center gap-3 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+    >
+      <span className="flex size-10 items-center justify-center rounded-xl bg-white shadow-sm">
+        <LogoMark size={28} priority />
+      </span>
+      <span className="flex flex-col leading-tight">
+        <span className="text-[15px] font-semibold text-white">InnoSustain</span>
+        <span className="text-xs text-sidebar-foreground/70">Appels d&apos;offres</span>
+      </span>
+    </Link>
+  );
+}
 
-      <nav className="flex-1 overflow-y-auto px-3 py-4">
-        {NAV.map((group, i) => (
-          <div key={i} className="mb-5">
-            {group.title && (
-              <p className="px-2.5 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-brand-blue-dark">
-                {group.title}
-              </p>
-            )}
-            <ul className="space-y-1">
-              {group.items.map(({ href, label, icon: Icon, count }) => {
-                const active = pathname === href || pathname.startsWith(href + "/");
-                return (
-                  <li key={href}>
-                    <Link
-                      href={href}
-                      aria-current={active ? "page" : undefined}
+/** Liste de navigation (groupes + éléments), partagée par la barre latérale et le menu mobile. */
+export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
+  const pathname = usePathname();
+  return (
+    <nav aria-label="Navigation principale" className="space-y-6">
+      {NAV.map((group) => (
+        <div key={group.title}>
+          {group.title && (
+            <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-sidebar-foreground/55">
+              {group.title}
+            </p>
+          )}
+          <ul className="space-y-1">
+            {group.items.map(({ href, label, icon: Icon, count }) => {
+              const active = isActivePath(pathname, href);
+              return (
+                <li key={href}>
+                  <Link
+                    href={href}
+                    onClick={onNavigate}
+                    aria-current={active ? "page" : undefined}
+                    className={cn(
+                      "group/nav relative flex h-10 items-center gap-3 rounded-lg px-3 text-sm outline-none transition-colors duration-200",
+                      "focus-visible:ring-2 focus-visible:ring-sidebar-ring",
+                      active
+                        ? "bg-sidebar-primary font-semibold text-white"
+                        : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-white",
+                    )}
+                  >
+                    {active && (
+                      // Indicateur latéral : jaune du logo
+                      <span aria-hidden className="absolute inset-y-2 left-0 w-1 rounded-r-full bg-brand-yellow" />
+                    )}
+                    <Icon
                       className={cn(
-                        "group/nav relative flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm transition-colors outline-none",
-                        "focus-visible:ring-2 focus-visible:ring-brand-green/50",
-                        active
-                          ? "bg-brand-green-ink font-medium text-white shadow-sm"
-                          : "text-brand-green-dark hover:bg-white hover:shadow-sm",
+                        "size-[18px] shrink-0 transition-colors",
+                        active ? "text-white" : "text-sidebar-foreground/65 group-hover/nav:text-white",
                       )}
-                    >
-                      {active && (
-                        // Liseré JAUNE = signal « vous êtes ici »
-                        <span
-                          aria-hidden
-                          className="absolute inset-y-1.5 left-0 w-[3px] rounded-r-full bg-brand-yellow"
-                        />
-                      )}
-                      <Icon
-                        className={cn(
-                          "size-4 shrink-0 transition-colors",
-                          active ? "text-brand-yellow" : "text-brand-green group-hover/nav:text-brand-green-ink",
-                        )}
-                      />
-                      <span className="truncate">{label}</span>
-                      {typeof count === "number" && count > 0 && (
-                        // Compteur JAUNE + texte brun foncé (10,19:1)
-                        <span className="ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-brand-yellow px-1.5 text-[10px] font-semibold tabular-nums text-brand-yellow-ink">
-                          {count > 99 ? "99+" : count}
-                        </span>
-                      )}
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        ))}
-      </nav>
+                    />
+                    <span className="truncate">{label}</span>
+                    {typeof count === "number" && count > 0 && (
+                      <span className="ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-brand-yellow px-1.5 text-[10px] font-semibold tabular-nums text-brand-yellow-ink">
+                        {count > 99 ? "99+" : count}
+                      </span>
+                    )}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ))}
+    </nav>
+  );
+}
 
-      {/* Pied : logo miniature CSS + raison sociale */}
-      <div className="border-t border-brand-green/20 bg-white/60 px-4 py-3 text-[11px] leading-relaxed">
-        <span className="flex items-center gap-2.5 font-medium text-brand-green-dark">
-          <span aria-hidden className="brand-dot" />
-          Innovative &amp; Sustainable Solutions
+/** Carte de marque discrète en bas de la barre latérale. */
+export function SidebarBrandCard() {
+  return (
+    <div className="rounded-xl border border-sidebar-border bg-white/6 p-3.5">
+      <div className="flex items-start gap-2.5">
+        <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-brand-yellow/15 text-brand-yellow">
+          <Leaf className="size-4" aria-hidden />
         </span>
-        <span className="block pl-[22px] text-muted-foreground">Leading territories decarbonisation in Africa</span>
+        <div className="min-w-0 text-[11px] leading-relaxed">
+          <p className="font-semibold text-white">Innovative &amp; Sustainable Solutions</p>
+          <p className="text-sidebar-foreground/65">Leading territories decarbonisation in Africa</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Barre latérale fixe (desktop) : vert foncé, logo, navigation, carte de marque. */
+export function Sidebar() {
+  return (
+    <aside
+      className={cn(
+        SIDEBAR_WIDTH,
+        "hidden h-screen shrink-0 flex-col bg-sidebar text-sidebar-foreground lg:flex",
+        "sticky top-0",
+      )}
+    >
+      <div className="px-5 pt-6 pb-4">
+        <SidebarBrand />
+      </div>
+      <div className="flex-1 overflow-y-auto px-3 py-2">
+        <SidebarNav />
+      </div>
+      <div className="px-3 pb-4 pt-2">
+        <SidebarBrandCard />
       </div>
     </aside>
   );
