@@ -13,6 +13,12 @@ import jwt
 from fastapi import Depends, Request
 from sqlalchemy.orm import Session
 
+from app.ai.llm import FakeLLM, LLMProvider
+from app.connectors.crawl.base import CrawlerProvider
+from app.connectors.crawl.fake import FakeCrawler
+from app.connectors.extractor import FakeTenderExtractor, TenderExtractor
+from app.connectors.search.base import WebSearchProvider
+from app.connectors.search.fake import FakeWebSearch
 from app.connectors.storage.base import StorageProvider
 from app.connectors.storage.local import LocalStorage
 from app.connectors.storage.s3 import S3Storage
@@ -23,9 +29,21 @@ from app.core.security import decode_access_token
 from app.models import User
 from app.repositories import users as users_repo
 
-__all__ = ["COOKIE_NAME", "get_current_user", "get_storage"]
+__all__ = [
+    "COOKIE_NAME",
+    "get_crawler",
+    "get_current_user",
+    "get_llm",
+    "get_storage",
+    "get_tender_extractor",
+    "get_web_search",
+]
 
 _storage_override: StorageProvider | None = None
+_web_search_override: WebSearchProvider | None = None
+_crawler_override: CrawlerProvider | None = None
+_llm_override: LLMProvider | None = None
+_tender_extractor_override: TenderExtractor | None = None
 
 
 @lru_cache
@@ -39,6 +57,60 @@ def _default_storage() -> StorageProvider:
 def get_storage() -> StorageProvider:
     """Choisi par STORAGE_BACKEND ; remplaçable par les tests via `_storage_override`."""
     return _storage_override or _default_storage()
+
+
+def _not_configured(what: str, env_var: str) -> RuntimeError:
+    return RuntimeError(
+        f"Aucun fournisseur {what} configuré ({env_var}) — implémentation réelle en Tâche 3.3/3.4"
+    )
+
+
+# En APP_ENV=test, les fournisseurs externes sont des fakes vides : aucun test ne sort sur le réseau.
+# Les implémentations réelles (Tavily, httpx/Playwright, OpenAI) sont branchées en 3.3 et 3.4.
+
+
+@lru_cache
+def _default_web_search() -> WebSearchProvider:
+    if get_settings().is_test:
+        return FakeWebSearch()
+    raise _not_configured("de recherche web", "TAVILY_API_KEY")
+
+
+@lru_cache
+def _default_crawler() -> CrawlerProvider:
+    if get_settings().is_test:
+        return FakeCrawler()
+    raise _not_configured("de crawl", "—")
+
+
+@lru_cache
+def _default_llm() -> LLMProvider:
+    if get_settings().is_test:
+        return FakeLLM()
+    raise _not_configured("LLM", "OPENAI_API_KEY")
+
+
+@lru_cache
+def _default_tender_extractor() -> TenderExtractor:
+    if get_settings().is_test:
+        return FakeTenderExtractor()
+    raise _not_configured("d'extraction d'appels d'offres", "OPENAI_API_KEY")
+
+
+def get_web_search() -> WebSearchProvider:
+    return _web_search_override or _default_web_search()
+
+
+def get_crawler() -> CrawlerProvider:
+    return _crawler_override or _default_crawler()
+
+
+def get_llm() -> LLMProvider:
+    return _llm_override or _default_llm()
+
+
+def get_tender_extractor() -> TenderExtractor:
+    return _tender_extractor_override or _default_tender_extractor()
 
 
 def get_current_user(request: Request, db: Session = Depends(get_db)) -> User:

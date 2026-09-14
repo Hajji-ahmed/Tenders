@@ -22,6 +22,10 @@ from sqlalchemy.engine import make_url  # noqa: E402
 from sqlalchemy.orm import Session  # noqa: E402
 
 import app.core.deps as deps  # noqa: E402
+from app.ai.llm import FakeLLM  # noqa: E402
+from app.connectors.crawl.fake import FakeCrawler  # noqa: E402
+from app.connectors.extractor import FakeTenderExtractor  # noqa: E402
+from app.connectors.search.fake import FakeWebSearch  # noqa: E402
 from app.connectors.storage.local import LocalStorage  # noqa: E402
 from app.core.db import get_db, make_engine  # noqa: E402
 from app.core.security import hash_password  # noqa: E402
@@ -79,6 +83,38 @@ def storage(tmp_path, monkeypatch):
     st = LocalStorage(tmp_path / "storage")
     monkeypatch.setattr(deps, "_storage_override", st)
     return st
+
+
+# Fournisseurs externes simulés, injectés via deps._<nom>_override : les services et les tâches les
+# obtiennent par deps.get_web_search() / get_crawler() / get_llm() / get_tender_extractor().
+
+
+@pytest.fixture
+def fake_search(monkeypatch) -> FakeWebSearch:
+    fake = FakeWebSearch()
+    monkeypatch.setattr(deps, "_web_search_override", fake)
+    return fake
+
+
+@pytest.fixture
+def fake_crawler(monkeypatch) -> FakeCrawler:
+    fake = FakeCrawler()
+    monkeypatch.setattr(deps, "_crawler_override", fake)
+    return fake
+
+
+@pytest.fixture
+def fake_llm(monkeypatch) -> FakeLLM:
+    fake = FakeLLM()
+    monkeypatch.setattr(deps, "_llm_override", fake)
+    return fake
+
+
+@pytest.fixture
+def fake_extractor(monkeypatch) -> FakeTenderExtractor:
+    fake = FakeTenderExtractor()
+    monkeypatch.setattr(deps, "_tender_extractor_override", fake)
+    return fake
 
 
 @pytest.fixture
