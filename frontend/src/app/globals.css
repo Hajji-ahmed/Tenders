@@ -2,6 +2,10 @@
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
+/* Base UI expose l'orientation via data-orientation ; les composants shadcn (tabs, separator)
+   ciblent data-horizontal / data-vertical : on relie les deux. */
+@custom-variant data-horizontal (&[data-orientation="horizontal"]);
+@custom-variant data-vertical (&[data-orientation="vertical"]);
 
 /*
   Charte InnoSustain (innosustain.africa) — vert, jaune, blanc uniquement (pas de noir) :

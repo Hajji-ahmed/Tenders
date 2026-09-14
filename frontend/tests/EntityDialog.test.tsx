@@ -44,6 +44,18 @@ describe("EntityDialog", () => {
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
+  it("defaults a required select to its first option so a fresh form can be submitted", async () => {
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+    const required: FieldSpec[] = [
+      { name: "name", label: "Nom", type: "text", required: true },
+      { name: "category", label: "Catégorie", type: "select", required: true, options: [{ value: "expertise", label: "Expertise" }, { value: "service", label: "Service" }] },
+    ];
+    render(<EntityDialog open onOpenChange={() => {}} title="Ajouter" fields={required} onSubmit={onSubmit} />);
+    await userEvent.type(screen.getByLabelText("Nom"), "Audit");
+    await userEvent.click(screen.getByRole("button", { name: /enregistrer/i }));
+    await waitFor(() => expect(onSubmit).toHaveBeenCalledWith({ name: "Audit", category: "expertise" }));
+  });
+
   it("pre-fills default values for edition", () => {
     render(
       <EntityDialog

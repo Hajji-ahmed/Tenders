@@ -51,6 +51,8 @@ function toFormValues(fields: FieldSpec[], values: EntityValues = {}): Record<st
     const v = values[f.name];
     if (f.type === "checkbox") out[f.name] = Boolean(v);
     else if (f.type === "tags") out[f.name] = Array.isArray(v) ? v.join(", ") : "";
+    else if (f.type === "select" && f.required && (v === null || v === undefined || v === ""))
+      out[f.name] = f.options?.[0]?.value ?? ""; // une liste requise part sur sa première option
     else out[f.name] = v === null || v === undefined ? "" : String(v);
   }
   return out;
