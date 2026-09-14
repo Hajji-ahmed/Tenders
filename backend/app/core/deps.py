@@ -14,11 +14,13 @@ from fastapi import Depends, Request
 from sqlalchemy.orm import Session
 
 from app.ai.llm import FakeLLM, LLMProvider
+from app.ai.openai_llm import OpenAILLM
 from app.connectors.crawl.base import CrawlerProvider
 from app.connectors.crawl.fake import FakeCrawler
 from app.connectors.crawl.httpx_crawler import HttpxCrawler
 from app.connectors.crawl.playwright_crawler import PlaywrightCrawler
 from app.connectors.extractor import FakeTenderExtractor, TenderExtractor
+from app.connectors.llm_extractor import LLMTenderExtractor
 from app.connectors.search.base import WebSearchProvider
 from app.connectors.search.fake import FakeWebSearch
 from app.connectors.search.tavily import TavilySearch
@@ -97,16 +99,19 @@ def _default_js_crawler() -> CrawlerProvider:
 
 @lru_cache
 def _default_llm() -> LLMProvider:
-    if get_settings().is_test:
+    s = get_settings()
+    if s.is_test:
         return FakeLLM()
-    raise _not_configured("LLM", "OPENAI_API_KEY")  # OpenAILLM branché en Tâche 3.4
+    if not s.openai_api_key:
+        raise _not_configured("LLM", "OPENAI_API_KEY")
+    return OpenAILLM(s)
 
 
 @lru_cache
 def _default_tender_extractor() -> TenderExtractor:
     if get_settings().is_test:
         return FakeTenderExtractor()
-    raise _not_configured("d'extraction d'appels d'offres", "OPENAI_API_KEY")  # Tâche 3.4
+    return LLMTenderExtractor(get_llm())
 
 
 def get_web_search() -> WebSearchProvider:

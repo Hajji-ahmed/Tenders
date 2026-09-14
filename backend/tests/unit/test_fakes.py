@@ -137,3 +137,28 @@ def test_deps_fail_clearly_without_tavily_key(monkeypatch):
             deps.get_web_search()
     finally:
         deps._default_web_search.cache_clear()
+
+
+def test_deps_build_real_llm_and_extractor_outside_tests(monkeypatch):
+    from app.ai.openai_llm import OpenAILLM
+    from app.connectors.llm_extractor import LLMTenderExtractor
+
+    monkeypatch.setattr(deps, "get_settings", lambda: _settings(openai_api_key="sk-x"))
+    deps._default_llm.cache_clear()
+    deps._default_tender_extractor.cache_clear()
+    try:
+        assert isinstance(deps.get_llm(), OpenAILLM)
+        assert isinstance(deps.get_tender_extractor(), LLMTenderExtractor)
+    finally:
+        deps._default_llm.cache_clear()
+        deps._default_tender_extractor.cache_clear()
+
+
+def test_deps_fail_clearly_without_openai_key(monkeypatch):
+    monkeypatch.setattr(deps, "get_settings", lambda: _settings())
+    deps._default_llm.cache_clear()
+    try:
+        with pytest.raises(RuntimeError, match="OPENAI_API_KEY"):
+            deps.get_llm()
+    finally:
+        deps._default_llm.cache_clear()

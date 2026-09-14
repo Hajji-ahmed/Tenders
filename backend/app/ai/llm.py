@@ -11,6 +11,10 @@ T = TypeVar("T", bound=BaseModel)
 Tier = Literal["fast", "strong"]
 
 
+class LLMError(RuntimeError):
+    """Le modèle n'a pas rendu la sortie attendue (refus, réponse vide) — non réessayé."""
+
+
 class LLMProvider(Protocol):
     def structured(
         self, *, system: str, user: str, output: type[T], tier: Tier = "fast", temperature: float = 0.0
