@@ -137,6 +137,15 @@ class Tender(UUIDMixin, TimestampMixin, Base):
     def days_left(self) -> int | None:
         return None if self.deadline_at is None else (self.deadline_at.date() - date.today()).days
 
+    # Compteurs exposés par l'API : charger `source_links` / `documents` avec selectinload en liste.
+    @property
+    def source_count(self) -> int:
+        return len(self.source_links)
+
+    @property
+    def document_count(self) -> int:
+        return len(self.documents)
+
 
 class TenderSourceLink(UUIDMixin, Base):
     """Provenance d'une opportunité : une ligne par URL collectée. L'unicité de `url` empêche de
@@ -156,6 +165,11 @@ class TenderSourceLink(UUIDMixin, Base):
     raw: Mapped[dict | None] = mapped_column(JSON)
 
     tender: Mapped[Tender] = relationship(back_populates="source_links")
+    source: Mapped[TenderSource | None] = relationship()
+
+    @property
+    def source_name(self) -> str | None:
+        return self.source.name if self.source is not None else None
 
 
 class TenderDocument(UUIDMixin, TimestampMixin, Base):
