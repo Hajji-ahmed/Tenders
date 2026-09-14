@@ -4,9 +4,11 @@ from pathlib import Path
 # Variables d'environnement de test — posées AVANT tout import de l'application.
 # DATABASE_URL est FORCÉE (pas setdefault) : une URL de dev présente dans l'environnement ne doit
 # jamais atteindre la fixture `engine`, qui fait drop_all.
+# 127.0.0.1 et non localhost : Docker n'écoute qu'en IPv4 et la tentative IPv6 (::1) bloque ~200 s
+# sous Windows avant de se rabattre sur IPv4 (chaque session pytest durait 5 min au lieu de 1).
 os.environ["APP_ENV"] = "test"
 os.environ["DATABASE_URL"] = os.environ.get(
-    "TEST_DATABASE_URL", "postgresql+psycopg://tender:tender@localhost:5433/tender_test"
+    "TEST_DATABASE_URL", "postgresql+psycopg://tender:tender@127.0.0.1:5433/tender_test"
 )
 os.environ.setdefault("SECRET_KEY", "test-secret-key-test-secret-key-0123456789")
 os.environ.setdefault("STORAGE_BACKEND", "local")

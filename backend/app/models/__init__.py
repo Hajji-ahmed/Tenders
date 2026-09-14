@@ -23,6 +23,17 @@ from app.models.document import (
     ExtractionStatus,
 )
 from app.models.job import Job, JobStatus
+from app.models.tender import (
+    DownloadStatus,
+    SearchProfile,
+    SourceKind,
+    Tender,
+    TenderDocument,
+    TenderSource,
+    TenderSourceLink,
+    TenderStatus,
+    Urgency,
+)
 from app.models.user import User
 
 __all__ = [
@@ -37,15 +48,24 @@ __all__ = [
     "DocumentKind",
     "DocumentStatus",
     "DocumentVersion",
+    "DownloadStatus",
     "Expert",
     "ExtractionStatus",
     "Job",
     "JobStatus",
     "Project",
     "Reference",
+    "SearchProfile",
     "Skill",
     "SkillCategory",
+    "SourceKind",
     "Technology",
     "TechnologyCategory",
+    "Tender",
+    "TenderDocument",
+    "TenderSource",
+    "TenderSourceLink",
+    "TenderStatus",
+    "Urgency",
     "User",
 ]
