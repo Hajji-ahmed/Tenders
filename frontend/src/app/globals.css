@@ -2,94 +2,99 @@
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
+/* Base UI expose l'orientation via data-orientation ; les composants shadcn (tabs, separator)
+   ciblent data-horizontal / data-vertical : on relie les deux. */
+@custom-variant data-horizontal (&[data-orientation="horizontal"]);
+@custom-variant data-vertical (&[data-orientation="vertical"]);
 
 /*
-  Charte InnoSustain — dérivée du logo « Innovative & Sustainable Solutions » :
-  vert (marque, actions), jaune (accent, mise en avant), noir (barre latérale).
-  Le contenu reste neutre et clair : l'interface sert les données.
+  Charte InnoSustain (innosustain.africa) — vert, jaune, blanc uniquement (pas de noir) :
+  vert #059541, jaune #fdcd0e, vert foncé #236b41, vert encre #047a36, doré #c89316,
+  fond #fbfbfb, texte #2f2f2f, gris #8a8fa3, Open Sans.
+  Rôles : VERT FONCÉ = barre latérale · VERT = actions et titres · VERT = action et structure ·
+  JAUNE = signal (compteurs, item actif, un bouton accent par écran) · BLEU LAGON = information et
+  repérage (surtitres, badges info, 3e liseré, graphiques). Le contenu reste blanc.
 */
 :root {
-  --brand-green: #0a9a47;
-  --brand-green-dark: #0b5d2d;
-  --brand-yellow: #ffcb05;
-  --brand-black: #0b0f0d;
+  /* ---- Marque : charte exacte + dérivés nommés (contraste vérifié) ---- */
+  --brand-green: #059541;             /* liserés, icônes, ring, arcs. JAMAIS texte < 24 px ni fond à texte blanc (3,9:1) */
+  --brand-green-ink: #047a36;         /* même teinte foncée : fonds primary + texte blanc (5,47:1), liens (5,28:1 sur fond) */
+  --brand-green-dark: #236b41;        /* charte : texte vert courant (6,46:1), hover des fonds verts */
+  --brand-green-tint: #e6f4ec;        /* surface verte claire : hover, badges success, ligne sélectionnée */
+  --brand-green-tint-strong: #cfe9da; /* hover des surfaces teintées (5,02:1 avec #236b41) */
+  --brand-yellow: #fdcd0e;            /* signal : texte NOIR uniquement (12,79:1) */
+  --brand-yellow-hover: #f2c200;      /* hover du jaune (11,48:1 avec noir) */
+  --brand-yellow-tint: #fff7d6;       /* fond des badges « à traiter » */
+  --brand-yellow-ink: #4a3b00;        /* texte sur teinte jaune (10,19:1) */
+  --brand-gold: #c89316;              /* charte : graphiques, pastilles. Jamais en texte (2,75:1) */
+  --brand-blue: #1b6f8e;              /* bleu lagon (4e couleur) : liserés, icônes, graphiques */
+  --brand-blue-dark: #155a72;         /* texte bleu (6,5:1 sur blanc), surtitres */
+  --brand-blue-tint: #e3f1f5;         /* surface bleue claire : badges info, hover */
+  --brand-ink-soft: #0a6b30;          /* hover sur surfaces vert encre */
+  --brand-gray: #8a8fa3;              /* charte : icônes secondaires, bordure hover des champs. Jamais en texte (3,21:1) */
 
   --radius: 0.5rem;
 
-  --background: #f5f7f6;
-  --foreground: #151a17;
+  --background: #fbfbfb;
+  --foreground: #2f2f2f;
   --card: #ffffff;
-  --card-foreground: #151a17;
+  --card-foreground: #2f2f2f;
   --popover: #ffffff;
-  --popover-foreground: #151a17;
-  --primary: var(--brand-green);
+  --popover-foreground: #2f2f2f;
+  --primary: var(--brand-green-ink);          /* MODIFIÉ (était #059541) : AA avec texte blanc */
   --primary-foreground: #ffffff;
-  --secondary: #e6f3ea;
+  --secondary: var(--brand-green-tint);
   --secondary-foreground: var(--brand-green-dark);
-  --muted: #edf0ee;
-  --muted-foreground: #5d6963;
-  --accent: #e6f3ea;
+  --muted: #f1f3f2;
+  --muted-foreground: #6b7280;                /* 4,83:1 — le gris charte ne passe pas AA en texte */
+  --accent: var(--brand-green-tint);
   --accent-foreground: var(--brand-green-dark);
   --destructive: #d23b2f;
   --destructive-foreground: #ffffff;
-  --border: #dbe2dd;
-  --input: #cfd8d2;
-  --ring: var(--brand-green);
+  --border: #e3e7e5;
+  --input: #d3dad6;
+  --ring: var(--brand-green);                 /* focus vert sur surfaces claires (non-texte, 3,9:1 > 3:1) */
 
-  --success: #0a9a47;
+  --success: var(--brand-green-ink);
   --success-foreground: #ffffff;
   --warning: var(--brand-yellow);
-  --warning-foreground: #3d3200;
+  --warning-foreground: var(--brand-yellow-ink); /* brun foncé sur jaune (10,19:1) */
 
-  --chart-1: #0a9a47;
-  --chart-2: #ffcb05;
-  --chart-3: #0b5d2d;
-  --chart-4: #7bc99a;
-  --chart-5: #9aa6a0;
+  --chart-1: #059541;
+  --chart-2: #fdcd0e;
+  --chart-3: #236b41;
+  --chart-4: #1b6f8e;
+  --chart-5: #c89316;
 
-  --sidebar: var(--brand-black);
-  --sidebar-foreground: #d5ddd8;
-  --sidebar-primary: var(--brand-green);
+  --sidebar: #1f5a38;                         /* barre latérale vert foncé (texte blanc 7,9:1) */
+  --sidebar-foreground: #e8f1ec;
+  --sidebar-primary: rgba(255, 255, 255, 0.14); /* élément actif : vert légèrement plus clair */
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #17211b;
+  --sidebar-accent: rgba(255, 255, 255, 0.08); /* survol */
   --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: #1f2b24;
-  --sidebar-ring: var(--brand-green);
+  --sidebar-border: rgba(255, 255, 255, 0.12);
+  --sidebar-ring: var(--brand-yellow);
+
+  /* Cartes SaaS : rayon et ombre uniques pour toute l'application */
+  --radius-card: 1rem;
+  --shadow-card: 0 1px 2px rgba(15, 40, 26, 0.04), 0 4px 16px -8px rgba(15, 40, 26, 0.10);
+  --shadow-card-hover: 0 2px 4px rgba(15, 40, 26, 0.05), 0 12px 28px -10px rgba(15, 40, 26, 0.16);
+
+  --scrollbar-thumb: #b9d6c4;                 /* vert-gris discret sur surfaces claires */
 }
 
-.dark {
-  --background: #0b0f0d;
-  --foreground: #e6ebe8;
-  --card: #121816;
-  --card-foreground: #e6ebe8;
-  --popover: #121816;
-  --popover-foreground: #e6ebe8;
-  --primary: #22b55f;
-  --primary-foreground: #06170d;
-  --secondary: #17211b;
-  --secondary-foreground: #bfe8cf;
-  --muted: #17211b;
-  --muted-foreground: #98a59f;
-  --accent: #17211b;
-  --accent-foreground: #bfe8cf;
-  --destructive: #ef5a4e;
-  --destructive-foreground: #ffffff;
-  --border: #243029;
-  --input: #2b3931;
-  --ring: #22b55f;
-  --sidebar: #070a09;
-  --sidebar-accent: #131b17;
-  --sidebar-border: #1a231e;
-}
 
 @theme inline {
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-xl: var(--radius-card);
+  --radius-2xl: calc(var(--radius-card) + 4px);
+  --shadow-card: var(--shadow-card);
+  --shadow-card-hover: var(--shadow-card-hover);
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -117,9 +122,20 @@
   --color-warning-foreground: var(--warning-foreground);
 
   --color-brand-green: var(--brand-green);
+  --color-brand-green-ink: var(--brand-green-ink);
   --color-brand-green-dark: var(--brand-green-dark);
+  --color-brand-green-tint: var(--brand-green-tint);
+  --color-brand-green-tint-strong: var(--brand-green-tint-strong);
   --color-brand-yellow: var(--brand-yellow);
-  --color-brand-black: var(--brand-black);
+  --color-brand-yellow-hover: var(--brand-yellow-hover);
+  --color-brand-yellow-tint: var(--brand-yellow-tint);
+  --color-brand-yellow-ink: var(--brand-yellow-ink);
+  --color-brand-gold: var(--brand-gold);
+  --color-brand-blue: var(--brand-blue);
+  --color-brand-blue-dark: var(--brand-blue-dark);
+  --color-brand-blue-tint: var(--brand-blue-tint);
+  --color-brand-ink-soft: var(--brand-ink-soft);
+  --color-brand-gray: var(--brand-gray);
 
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
@@ -141,7 +157,147 @@
   * {
     @apply border-border outline-ring/50;
   }
+  /* scrollbar-color est hérité : une déclaration sur html suffit pour les surfaces claires */
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
+  }
   body {
     @apply bg-background text-foreground font-sans antialiased;
+  }
+  h1,
+  h2,
+  h3 {
+    @apply tracking-tight;
+  }
+  /* Sélection de texte : disque jaune du logo + texte vert foncé */
+  ::selection {
+    background-color: var(--brand-yellow);
+    color: var(--brand-green-dark);
+  }
+  /* Surfaces vert encre (sidebar, héros) : pouce clair. Redéclaré car la valeur héritée est déjà calculée. */
+  [data-surface="inverse"] {
+    --scrollbar-thumb: #7fc39b;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
+  }
+}
+
+@layer components {
+  /* Surface héros : vert encre + motif du logo « disque jaune, anneau clair, grand arc », en CSS pur,
+     sous le contenu (z-index -1 dans un contexte isolé). Aucun dégradé. --hero-scale règle la taille. */
+  .brand-hero {
+    --hero-scale: 1;
+    --hero-bg: var(--brand-green-ink);
+    --hero-arc: color-mix(in srgb, #ffffff 14%, transparent);
+    --hero-ring: color-mix(in srgb, #ffffff 22%, transparent);
+    --hero-disc: color-mix(in srgb, var(--brand-yellow) 55%, transparent);
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    background-color: var(--hero-bg);
+    color: #ffffff;
+  }
+  /* Variante bleu lagon : même motif, autre couleur — texte blanc 6,5:1 */
+  .brand-hero-blue {
+    --hero-bg: var(--brand-blue-dark);
+  }
+  /* Variante vert faible (dashboard) : surface claire, texte vert foncé, motif aux couleurs du logo */
+  .brand-hero-light {
+    --hero-bg: var(--brand-green-tint);
+    --hero-arc: color-mix(in srgb, var(--brand-green) 22%, transparent);
+    --hero-ring: color-mix(in srgb, var(--brand-green) 45%, transparent);
+    --hero-disc: var(--brand-yellow);
+    color: var(--brand-green-dark);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand-green) 25%, transparent);
+  }
+  /* Variante bleu lagon clair (dashboard) : surface claire bleutée, texte bleu foncé, disque jaune */
+  .brand-hero-light-blue {
+    --hero-bg: var(--brand-blue-tint);
+    --hero-arc: color-mix(in srgb, var(--brand-blue) 22%, transparent);
+    --hero-ring: color-mix(in srgb, var(--brand-blue) 45%, transparent);
+    --hero-disc: var(--brand-yellow);
+    color: var(--brand-blue-dark);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand-blue) 25%, transparent);
+  }
+  .brand-hero::before {
+    /* grand arc extérieur (côtés gauche/bas transparents = arc, pas anneau) */
+    content: "";
+    position: absolute;
+    z-index: -1;
+    pointer-events: none;
+    top: 50%;
+    right: calc(-7rem * var(--hero-scale));
+    width: calc(26rem * var(--hero-scale));
+    height: calc(26rem * var(--hero-scale));
+    translate: 0 -50%;
+    rotate: -30deg;
+    border-radius: 9999px;
+    border: calc(3rem * var(--hero-scale)) solid var(--hero-arc);
+    border-left-color: transparent;
+    border-bottom-color: transparent;
+  }
+  .brand-hero::after {
+    /* disque jaune tamisé + anneau vert rapproché, concentriques avec l'arc (centre à 6rem du bord droit) */
+    content: "";
+    position: absolute;
+    z-index: -1;
+    pointer-events: none;
+    top: 50%;
+    right: calc(3rem * var(--hero-scale));
+    width: calc(6rem * var(--hero-scale));
+    height: calc(6rem * var(--hero-scale));
+    translate: 0 -50%;
+    border-radius: 9999px;
+    background-color: var(--hero-disc);
+    box-shadow:
+      0 0 0 calc(1rem * var(--hero-scale)) var(--hero-bg),
+      0 0 0 calc(2rem * var(--hero-scale)) var(--hero-ring);
+  }
+  .brand-hero-sm {
+    --hero-scale: 0.6;
+  }
+  /* Logo miniature (10 px) : disque jaune, anneau blanc (= espace), anneau vert — le logo sur fond clair */
+  .brand-dot {
+    display: inline-block;
+    flex: none;
+    width: 0.625rem;
+    height: 0.625rem;
+    border-radius: 9999px;
+    background-color: var(--brand-yellow);
+    box-shadow:
+      0 0 0 2px #ffffff,
+      0 0 0 4px var(--brand-green);
+  }
+}
+
+@layer components {
+  /* Forme organique abstraite très légère (coin inférieur droit des cartes) — --blob-color la teinte. */
+  .brand-blob {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .brand-blob::before,
+  .brand-blob::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    pointer-events: none;
+    border-radius: 9999px;
+    background-color: var(--blob-color, var(--brand-green));
+  }
+  .brand-blob::before {
+    right: -3.5rem;
+    bottom: -4rem;
+    width: 11rem;
+    height: 11rem;
+    opacity: 0.09;
+  }
+  .brand-blob::after {
+    right: 1.5rem;
+    bottom: -2rem;
+    width: 5.5rem;
+    height: 5.5rem;
+    opacity: 0.12;
   }
 }

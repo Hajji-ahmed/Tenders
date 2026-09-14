@@ -1805,6 +1805,17 @@ jobs:
 ---
 # PHASE 2 — Profil entreprise & documents (S3)
 
+> **Écarts constatés à l'exécution (14/09/2026) — à respecter dans les phases suivantes :**
+> - La phase a été découpée en 7 tâches (2.1 modèles, 2.2 API profil, 2.3 service documents, 2.4 API documents, 2.5 socle frontend générique, 2.6 page profil, 2.7 page documents) ; les Tasks 2.4/2.5 ci-dessous correspondent aux 2.6/2.7 exécutées.
+> - **Charte InnoSustain** (pas INKWAY) : vert `#059541` / vert encre `#047a36` (primaire), jaune `#fdcd0e` (signal : compteurs, item actif, un bouton `accent` par écran), bleu lagon `#1b6f8e` (information), sidebar vert foncé `#1f5a38`, aucun noir ; police **Inter** (le site utilise Open Sans, le brief dashboard a imposé Inter). Tokens dans `globals.css` (`--brand-*`, `.brand-hero*`, `Badge` success/warning/warning-soft/inverse/muted/info, `Card accent`, `TableHeader variant="inverse"` — une seule table par page).
+> - **Base UI 1.8 émet `data-orientation`, pas `data-horizontal`/`data-vertical`** : `globals.css` déclare deux `@custom-variant` qui relient les deux, sinon les onglets shadcn s'empilent en ligne et le séparateur casse. Base UI `Button` avec `render={<a/>}` garde `role="button"` : un lien de téléchargement est une `<a>` stylée par `buttonVariants`.
+> - Codes d'erreur **précis** côté API (`unsupported_file_type`, `duplicate_document`, `file_too_large`) plutôt que génériques ; l'enveloppe `{"error": {code, message}}` est relayée telle quelle dans les boîtes de dialogue (`submitError`).
+> - Sous-ressources du profil via `build_crud_router(model, create, update, read, prefix=, tag=)` (32 opérations) ; côté front, un seul `ResourceTab` générique + `EntityTable`/`EntityDialog` pilotés par `FieldSpec` — une liste **requise** démarre sur sa première option (sinon le formulaire est bloqué).
+> - `/company` synchronise l'onglet dans `?tab=` (`useSearchParams` sous `<Suspense>`, obligatoire au rendu statique). `/documents` garde ses filtres en état local, recherche différée 300 ms, toute mutation invalide l'arbre `["documents"]`.
+> - Historique des versions : `DocumentService(..., author=user.email)` — la colonne `author` est un libellé lisible, jamais l'UUID.
+> - Compte de développement : `test@innosustain.com` / `InnoSustain` (local uniquement, jamais en staging/prod). Les parcours réels sont joués avec Playwright (Chromium dans le venv backend) contre l'API Docker, via un `next start` local construit avec `API_URL=http://127.0.0.1:8010` ; **tuer le processus `node` qui écoute (pas seulement le `cmd.exe` parent)** avant un rebuild, sinon l'ancien serveur sert un chunk CSS disparu (page sans style).
+> - Ports : VS Code occupe 3000/8000 sur le poste ; le fichier `ports-override.yml` (scratchpad) expose l'API sur 8010 et le frontend sur 3010.
+
 ### Task 2.1 : Modèles du domaine entreprise + migration
 
 **Files:**

@@ -4,16 +4,17 @@ import { describe, expect, it } from "vitest";
 import { LogoFull, LogoMark } from "@/components/brand/Logo";
 
 describe("Logo", () => {
-  it("renders an accessible mark with the brand colors", () => {
-    const { container } = render(<LogoMark />);
-    expect(screen.getByRole("img", { name: "InnoSustain" })).toBeInTheDocument();
-    expect(container.querySelector("circle")).toHaveAttribute("fill", "#ffcb05");
-    expect(container.querySelectorAll("path[stroke='#0a9a47']")).toHaveLength(3);
+  it("renders the official mark with an accessible name", () => {
+    render(<LogoMark size={40} />);
+    const img = screen.getByRole("img", { name: "InnoSustain" });
+    expect(img).toHaveAttribute("src", expect.stringContaining("iss_shortcut.png"));
+    expect(img).toHaveAttribute("width", "40");
   });
 
-  it("renders the full wordmark", () => {
-    render(<LogoFull />);
-    expect(screen.getByText(/Innovative &/)).toBeInTheDocument();
-    expect(screen.getByText(/Sustainable Solutions/)).toBeInTheDocument();
+  it("renders the full logo keeping the official aspect ratio", () => {
+    render(<LogoFull width={536} />);
+    const img = screen.getByRole("img", { name: "Innovative & Sustainable Solutions" });
+    expect(img).toHaveAttribute("src", expect.stringContaining("iss_logo.png"));
+    expect(img).toHaveAttribute("height", "134"); // 536 × 267 / 1072
   });
 });

@@ -14,7 +14,7 @@ from app.core.db import SessionLocal
 from app.core.security import hash_password
 from app.models import User
 
-MIN_PASSWORD_LENGTH = 12
+MIN_PASSWORD_LENGTH = 8
 
 
 def _read_password() -> str:
@@ -33,6 +33,17 @@ def create_user(email: str) -> None:
         db.add(User(email=email, password_hash=hash_password(_read_password())))
         db.commit()
         print(f"Utilisateur {email} créé")
+
+
+def set_active(email: str, active: bool) -> None:
+    email = email.lower()
+    with SessionLocal() as db:
+        user = db.scalar(select(User).where(User.email == email))
+        if user is None:
+            raise SystemExit(f"Utilisateur {email} introuvable")
+        user.is_active = active
+        db.commit()
+        print(f"Utilisateur {email} {'activé' if active else 'désactivé'}")
 
 
 def set_password(email: str) -> None:
@@ -56,11 +67,21 @@ def main() -> None:
     p_pwd = sub.add_parser("set-password", help="Changer le mot de passe d'un utilisateur")
     p_pwd.add_argument("--email", required=True)
 
+    p_dis = sub.add_parser("disable-user", help="Désactiver un utilisateur (connexion refusée, réversible)")
+    p_dis.add_argument("--email", required=True)
+
+    p_en = sub.add_parser("enable-user", help="Réactiver un utilisateur")
+    p_en.add_argument("--email", required=True)
+
     args = parser.parse_args()
     if args.cmd == "create-user":
         create_user(args.email)
     elif args.cmd == "set-password":
         set_password(args.email)
+    elif args.cmd == "disable-user":
+        set_active(args.email, False)
+    elif args.cmd == "enable-user":
+        set_active(args.email, True)
 
 
 if __name__ == "__main__":

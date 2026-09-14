@@ -1,17 +1,31 @@
 import * as React from "react"
 import { cn } from "cn"
 
+type CardAccent = "none" | "green" | "yellow" | "blue" | "deep"
+
+// Liseré de 3 px en tête : vert (activité), jaune (signal), bleu (information), vert foncé (structure).
+const CARD_ACCENT: Record<CardAccent, string> = {
+  none: "",
+  green: "border-t-[3px] border-t-brand-green",
+  yellow: "border-t-[3px] border-t-brand-yellow",
+  blue: "border-t-[3px] border-t-brand-blue",
+  deep: "border-t-[3px] border-t-brand-green-dark",
+}
+
 function Card({
   className,
   size = "default",
+  accent = "none",
   ...props
-}: React.ComponentProps<"div"> & { size?: "default" | "sm" }) {
+}: React.ComponentProps<"div"> & { size?: "default" | "sm"; accent?: CardAccent }) {
   return (
     <div
       data-slot="card"
       data-size={size}
+      data-accent={accent}
       className={cn(
         "group/card flex flex-col gap-(--card-spacing) overflow-hidden rounded-xl bg-card py-(--card-spacing) text-sm text-card-foreground ring-1 ring-foreground/10 [--card-spacing:--spacing(4)] has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 data-[size=sm]:[--card-spacing:--spacing(3)] data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-xl *:[img:last-child]:rounded-b-xl",
+        CARD_ACCENT[accent],
         className
       )}
       {...props}
@@ -37,7 +51,7 @@ function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="card-title"
       className={cn(
-        "text-base leading-snug font-medium group-data-[size=sm]/card:text-sm",
+        "text-base leading-snug font-semibold text-brand-green-dark group-data-[size=sm]/card:text-sm",
         className
       )}
       {...props}
@@ -83,7 +97,7 @@ function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="card-footer"
       className={cn(
-        "flex items-center rounded-b-xl border-t bg-muted/50 p-(--card-spacing)",
+        "flex items-center rounded-b-xl border-t border-border bg-muted/50 p-(--card-spacing)",
         className
       )}
       {...props}

@@ -1,30 +1,21 @@
 "use client";
 
-import { LogOut } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { Breadcrumb } from "@/components/layout/Breadcrumb";
+import { MobileSidebar } from "@/components/layout/MobileSidebar";
+import { NotificationButton } from "@/components/layout/NotificationButton";
+import { UserMenu } from "@/components/layout/UserMenu";
 
-import { Button } from "@/components/ui/button";
-import { useLogout, useMe } from "@/lib/queries/auth";
-
+/** En-tête blanc : menu mobile, fil d'Ariane à gauche ; notifications, utilisateur, déconnexion à droite. */
 export function Header() {
-  const router = useRouter();
-  const { data: me } = useMe();
-  const logout = useLogout();
-
-  async function handleLogout() {
-    await logout.mutateAsync();
-    router.replace("/login");
-  }
-
   return (
-    <header className="flex h-16 items-center justify-between border-b bg-card px-6">
-      <div />
-      <div className="flex items-center gap-3">
-        <span className="text-sm text-muted-foreground">{me?.email ?? "…"}</span>
-        <Button variant="ghost" size="sm" onClick={handleLogout} disabled={logout.isPending}>
-          <LogOut className="size-4" />
-          Déconnexion
-        </Button>
+    <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between gap-4 border-b border-border bg-white/95 px-4 backdrop-blur supports-backdrop-filter:bg-white/80 sm:px-6 lg:px-8">
+      <div className="flex min-w-0 items-center gap-2">
+        <MobileSidebar />
+        <Breadcrumb className="hidden sm:block" />
+      </div>
+      <div className="flex items-center gap-1 sm:gap-2">
+        <NotificationButton />
+        <UserMenu />
       </div>
     </header>
   );

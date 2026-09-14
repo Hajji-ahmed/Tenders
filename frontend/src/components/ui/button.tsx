@@ -7,16 +7,31 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/80",
+        // Action principale : vert encre #047a36 (5,47:1 avec blanc), hover vert foncé charte
+        default: "bg-primary text-primary-foreground hover:bg-brand-green-dark",
+        // Signal : jaune + texte brun foncé (10,19:1). UN SEUL bouton accent par écran (l'action qui lance / crée)
+        accent:
+          "bg-brand-yellow font-semibold text-brand-yellow-ink hover:bg-brand-yellow-hover focus-visible:border-brand-green-dark/60 focus-visible:ring-brand-yellow/40",
+        // Ossature : vert encre plein, texte blanc. Usage rare (Exporter, Archiver)
+        inverse:
+          "bg-brand-green-ink text-white hover:bg-brand-ink-soft focus-visible:border-brand-yellow focus-visible:ring-brand-yellow/40",
+        // Fantôme SUR surface vert encre (Header, héros) : focus jaune comme dans la sidebar
+        "ghost-inverse":
+          "text-white/85 hover:bg-white/12 hover:text-white aria-expanded:bg-white/12 aria-expanded:text-white focus-visible:border-brand-yellow/60 focus-visible:ring-brand-yellow/30",
+        // Contour SUR surface vert encre : action secondaire d'un héros
+        "outline-inverse":
+          "border-white/40 text-white hover:border-brand-yellow hover:bg-white/8 aria-expanded:bg-white/12 focus-visible:border-brand-yellow focus-visible:ring-brand-yellow/30",
+        // Contour : hover vert (bordure + teinte)
         outline:
-          "border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
+          "border-border bg-background text-foreground hover:border-brand-green hover:bg-brand-green-tint hover:text-brand-green-dark aria-expanded:bg-brand-green-tint aria-expanded:text-brand-green-dark dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
+        // Teinte verte pleine : actions tertiaires
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-[color-mix(in_oklch,var(--secondary),var(--foreground)_5%)] aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
+          "bg-brand-green-tint text-brand-green-dark hover:bg-brand-green-tint-strong aria-expanded:bg-brand-green-tint-strong",
         ghost:
-          "hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50",
+          "text-foreground hover:bg-brand-green-tint hover:text-brand-green-dark aria-expanded:bg-brand-green-tint aria-expanded:text-brand-green-dark dark:hover:bg-muted/50",
         destructive:
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
-        link: "text-primary underline-offset-4 hover:underline",
+        link: "text-primary underline-offset-4 hover:text-brand-green-dark hover:underline",
       },
       size: {
         default:
