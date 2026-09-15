@@ -111,11 +111,12 @@ export function EntityDialog({
   } = useForm<Record<string, string | boolean>>({ defaultValues: toFormValues(fields, defaultValues) });
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  // Rouvrir la fenêtre sur une autre entité : repartir des nouvelles valeurs.
+  // Repartir des valeurs de l'entité à CHAQUE OUVERTURE seulement : un parent qui re-rend avec un
+  // nouvel objet `defaultValues` (littéral, `toForm(row)`) ne doit jamais effacer la saisie en cours.
   useEffect(() => {
     if (open) reset(toFormValues(fields, defaultValues));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, defaultValues]);
+  }, [open]);
 
   function close(next: boolean) {
     if (!next) setSubmitError(null);
