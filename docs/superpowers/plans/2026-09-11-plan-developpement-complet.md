@@ -2320,6 +2320,18 @@ Beat (dans `celery_app.py`, `from celery.schedules import crontab`) : `celery_ap
 
 # PHASE 3 — Recherche & collecte (S4)
 
+> **Écarts constatés à l'exécution (15/09/2026) — à respecter dans les phases suivantes :**
+> - **`127.0.0.1`, jamais `localhost`** dans les URL Postgres / Redis / MinIO côté hôte : la tentative IPv6 `::1` bloque ~200 s sous Windows (suite backend 293 s → 33 s). Corrigé dans `conftest.py`, `Settings` et les `.env.example`.
+> - Fournisseurs externes : `deps.get_web_search()` (Tavily, **optionnel** : sans clé, `build_collect_service()` met les sources moteur en erreur sans faire échouer le job), `get_crawler()` (httpx), `get_js_crawler()` (Playwright, pour `render_js: true`), `get_llm()` (OpenAI, `chat.completions.parse` non-beta du SDK 3.x), `get_tender_extractor()`, `get_rss()` — tous avec `_<nom>_override` et fixtures `fake_*`. Chromium n'est **pas** dans l'image Docker backend (+400 Mo) : une source `render_js` y remonte une erreur de source explicite.
+> - `CrawlResult.error` ajouté au contrat ; un crawler ne lève jamais (`status_code=0` + `error`, 451 si robots.txt interdit, fail-open si robots injoignable). Sniffing HTML sur `text/plain` / type absent.
+> - `CollectService.collect_source` ne lève jamais : `SourceReport(status ok|error|skipped, found, skipped_known, fetched, errors, extracted, error)` ; les URL déjà dans `tender_source_links` sont ignorées **avant** tout accès réseau ; portails : même domaine sauf `allow_external`, `link_pattern` regex, `max_links`, `max_urls`. `IngestService` v1 : une fiche par URL nouvelle (fusion des doublons = Phase 4 ; les tests réels ont laissé des fiches identiques à fusionner).
+> - `DocumentVersion.author` et tout libellé exposé à l'utilisateur = valeur lisible (email), jamais un UUID.
+> - Handler 422 : le message d'un validateur de modèle Pydantic (`loc = body`) est rendu tel quel (« base_url est obligatoire pour une source de type rss »), plus de « Requête invalide » générique.
+> - `build_crud_router(..., audit_action=, order_by=(col1, col2))` ; tests API 404 : exiger l'enveloppe `{"error": {"code": "not_found"}}` (une route absente renvoie aussi 404).
+> - `created_at` = `now()` PostgreSQL est identique pour toute une transaction : tri secondaire déterministe (titre) et `created_at` explicites dans les fixtures qui testent l'ordre.
+> - Frontend : `EntityDialog` ne réinitialise le formulaire **qu'à l'ouverture** (un `defaultValues` littéral re-créé à chaque rendu effaçait la saisie) ; `EntityTable.extraActions` pour les boutons par ligne ; `JobProgress` sonde toutes les 2 s (`pollInterval`) et prévient via `onSettled` pour invalider les listes ; un `page.tsx` Next n'exporte que sa page (la logique va dans `lib/`).
+> - Docker : `env_file` est lu à la **création** du conteneur — après ajout d'une clé dans `.env`, `docker compose up -d --force-recreate api worker beat`. Le code backend est monté (`./backend:/app`) : l'API se recharge, le worker doit être redémarré. Parcours réel : serveur local joignable des conteneurs via `host.docker.internal`.
+
 ### Task 3.1 : Modèles recherche/sources/tenders + migration
 
 **Files:**

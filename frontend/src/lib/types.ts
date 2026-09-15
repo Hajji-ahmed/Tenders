@@ -160,3 +160,148 @@ export type DocumentVersion = {
   changelog: string | null;
   created_at: string;
 };
+
+// ---- Recherche & opportunités (Phase 3) -------------------------------------------------------
+
+export type SourceKind = "search_engine" | "rss" | "portal" | "website" | "api";
+
+export type SearchProfile = Timestamps & {
+  id: string;
+  name: string;
+  countries: string[];
+  regions: string[];
+  sectors: string[];
+  domains: string[];
+  keywords: string[];
+  budget_min: number | null;
+  budget_max: number | null;
+  currency: string | null;
+  organization_types: string[];
+  market_types: string[];
+  technologies: string[];
+  skills: string[];
+  certifications: string[];
+  experience_level: string | null;
+  deadline_min_days: number | null;
+  deadline_max_days: number | null;
+  is_active: boolean;
+  last_run_at: string | null;
+};
+
+/** `config` d'une source, selon son type (voir backend TenderSource). */
+export type SourceConfig = {
+  include_domains?: string[];
+  max_results?: number;
+  listing_paths?: string[];
+  link_pattern?: string;
+  render_js?: boolean;
+  max_links?: number;
+};
+
+export type TenderSource = Timestamps & {
+  id: string;
+  name: string;
+  kind: SourceKind;
+  base_url: string | null;
+  config: SourceConfig;
+  is_enabled: boolean;
+  priority: number;
+  last_run_at: string | null;
+  last_status: "ok" | "error" | "skipped" | null;
+  last_error: string | null;
+};
+
+export type TenderCandidate = {
+  is_tender: boolean;
+  confidence: number;
+  title: string;
+  organization: string | null;
+  country: string | null;
+  sector: string | null;
+  deadline_at: string | null;
+  source_url: string;
+  document_urls: string[];
+};
+
+/** Résultat de POST /sources/{id}/test. */
+export type SourceTestReport = {
+  status: "ok" | "error" | "skipped";
+  error: string | null;
+  found: number;
+  skipped_known: number;
+  fetched: number;
+  errors: number;
+  extracted: number;
+  queries: string[];
+  candidates: TenderCandidate[];
+};
+
+export type TenderStatus =
+  | "NOUVEAU"
+  | "A_ANALYSER"
+  | "GO"
+  | "NO_GO"
+  | "PREPARATION"
+  | "VALIDATION"
+  | "PRET"
+  | "SOUMIS"
+  | "GAGNE"
+  | "PERDU"
+  | "ARCHIVE";
+export type Urgency = "none" | "low" | "medium" | "high" | "critical";
+
+export type Tender = Timestamps & {
+  id: string;
+  reference: string | null;
+  title: string;
+  organization: string | null;
+  organization_type: string | null;
+  country: string | null;
+  region: string | null;
+  sector: string | null;
+  market_type: string | null;
+  budget_min: number | null;
+  budget_max: number | null;
+  currency: string | null;
+  published_at: string | null;
+  deadline_at: string | null;
+  questions_deadline_at: string | null;
+  source_url: string | null;
+  description: string | null;
+  summary: string | null;
+  status: TenderStatus;
+  urgency: Urgency;
+  is_active: boolean;
+  search_profile_id: string | null;
+  days_left: number | null;
+  source_count: number;
+  document_count: number;
+  score_total: number | null;
+};
+
+export type TenderSourceLink = {
+  id: string;
+  source_id: string | null;
+  source_name: string | null;
+  url: string;
+  title_seen: string | null;
+  collected_at: string;
+};
+
+export type TenderDocumentRef = Timestamps & {
+  id: string;
+  name: string;
+  source_url: string | null;
+  mime_type: string | null;
+  size_bytes: number | null;
+  download_status: "pending" | "done" | "failed" | "skipped";
+  extraction_status: string;
+  page_count: number | null;
+  error: string | null;
+};
+
+export type TenderDetail = Tender & {
+  extra: Record<string, unknown>;
+  source_links: TenderSourceLink[];
+  documents: TenderDocumentRef[];
+};

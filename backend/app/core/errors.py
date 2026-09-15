@@ -74,7 +74,9 @@ def register_error_handlers(app: FastAPI) -> None:
         errors = exc.errors()
         first = errors[0] if errors else {}
         loc = ".".join(str(p) for p in first.get("loc", []) if p != "body")
-        message = f"{loc} : {first.get('msg', 'valeur invalide')}" if loc else "Requête invalide"
+        # Un validateur de modèle (loc = body seul) porte lui-même le message utile.
+        msg = str(first.get("msg", "valeur invalide")).removeprefix("Value error, ")
+        message = f"{loc} : {msg}" if loc else (msg if errors else "Requête invalide")
         details = [{"loc": e.get("loc"), "msg": e.get("msg"), "type": e.get("type")} for e in errors]
         return _error_response(422, "validation_error", message, details=details)
 

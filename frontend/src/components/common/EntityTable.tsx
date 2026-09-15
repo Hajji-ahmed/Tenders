@@ -19,6 +19,8 @@ type Props<T extends { id: string }> = {
   rows: T[];
   onEdit?: (row: T) => void;
   onDelete?: (row: T) => void;
+  /** Actions supplémentaires par ligne (ex. « Tester », « Lancer »), placées avant Modifier / Supprimer. */
+  extraActions?: (row: T) => React.ReactNode;
   emptyLabel?: string;
   /** En-tête de la table principale de la page en vert encre (`inverse`) — une seule par page. */
   headerVariant?: "default" | "inverse";
@@ -38,10 +40,11 @@ export function EntityTable<T extends { id: string }>({
   rows,
   onEdit,
   onDelete,
+  extraActions,
   emptyLabel = "Aucun élément",
   headerVariant = "default",
 }: Props<T>) {
-  const hasActions = Boolean(onEdit || onDelete);
+  const hasActions = Boolean(onEdit || onDelete || extraActions);
 
   if (rows.length === 0) {
     return (
@@ -61,7 +64,7 @@ export function EntityTable<T extends { id: string }>({
             </TableHead>
           ))}
           {hasActions && (
-            <TableHead className="w-24 text-right">
+            <TableHead className="text-right">
               <span className="sr-only">Actions</span>
             </TableHead>
           )}
@@ -78,6 +81,7 @@ export function EntityTable<T extends { id: string }>({
             {hasActions && (
               <TableCell className="text-right">
                 <div className="flex justify-end gap-1">
+                  {extraActions?.(row)}
                   {onEdit && (
                     <Button variant="ghost" size="icon-sm" aria-label="Modifier" onClick={() => onEdit(row)}>
                       <Pencil />

@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.api.v1 import auth, company, documents, health, jobs
+from app.api.v1 import auth, company, documents, health, jobs, search_profiles, searches, sources, tenders
 
 api_router = APIRouter()
 api_router.include_router(health.router, tags=["health"])
@@ -8,3 +8,7 @@ api_router.include_router(auth.router, tags=["auth"])
 api_router.include_router(jobs.router, tags=["jobs"])
 api_router.include_router(company.router)
 api_router.include_router(documents.router)
+api_router.include_router(search_profiles.router)
+api_router.include_router(sources.router)
+api_router.include_router(searches.router)
+api_router.include_router(tenders.router)

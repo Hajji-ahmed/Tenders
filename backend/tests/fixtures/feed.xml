@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Portail des marchés publics — flux de test</title>
+    <link>https://portail.example.ma</link>
+    <description>Derniers appels d'offres publiés</description>
+    <item>
+      <title>AO 12/2026 — Refonte du système d'information</title>
+      <link>https://portail.example.ma/ao/12-2026</link>
+      <description><![CDATA[<p>Objet : <b>refonte du SI</b> de la commune.</p><p>Date limite : 30/10/2026</p>]]></description>
+      <pubDate>Mon, 14 Sep 2026 08:00:00 GMT</pubDate>
+      <guid>https://portail.example.ma/ao/12-2026</guid>
+    </item>
+    <item>
+      <title>Consultation — Audit énergétique de bâtiments publics</title>
+      <link>https://portail.example.ma/ao/13-2026</link>
+      <description>Audit énergétique de 12 bâtiments.</description>
+      <pubDate>Sun, 13 Sep 2026 09:30:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Entrée sans lien (ignorée)</title>
+      <description>Pas d'URL.</description>
+    </item>
+  </channel>
+</rss>

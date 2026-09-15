@@ -73,3 +73,18 @@ describe("EntityDialog", () => {
     expect(screen.getByLabelText("Référence")).toBeChecked();
   });
 });
+
+describe("EntityDialog stability", () => {
+  it("keeps what the user typed when the parent re-renders with a new defaultValues object", async () => {
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+    const fieldsMin: FieldSpec[] = [{ name: "name", label: "Nom", type: "text", required: true }];
+    const { rerender } = render(
+      <EntityDialog open onOpenChange={() => {}} title="Ajouter" fields={fieldsMin} defaultValues={{}} onSubmit={onSubmit} />,
+    );
+    await userEvent.type(screen.getByLabelText("Nom"), "Portail");
+    rerender(<EntityDialog open onOpenChange={() => {}} title="Ajouter" fields={fieldsMin} defaultValues={{}} onSubmit={onSubmit} />);
+    expect(screen.getByLabelText("Nom")).toHaveValue("Portail");
+    await userEvent.click(screen.getByRole("button", { name: /enregistrer/i }));
+    await waitFor(() => expect(onSubmit).toHaveBeenCalledWith({ name: "Portail" }));
+  });
+});

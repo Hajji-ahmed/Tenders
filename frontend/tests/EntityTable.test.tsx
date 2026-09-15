@@ -40,3 +40,24 @@ describe("EntityTable", () => {
     expect(screen.queryByRole("button", { name: /supprimer/i })).not.toBeInTheDocument();
   });
 });
+
+describe("EntityTable extra actions", () => {
+  it("renders custom per-row actions before edit/delete", async () => {
+    const onTest = vi.fn();
+    render(
+      <EntityTable
+        columns={columns}
+        rows={rows}
+        onEdit={() => {}}
+        extraActions={(row) => (
+          <button type="button" onClick={() => onTest(row)}>
+            Tester {row.name}
+          </button>
+        )}
+      />,
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Tester Bilan carbone" }));
+    expect(onTest).toHaveBeenCalledWith(expect.objectContaining({ id: "2" }));
+    expect(screen.getAllByRole("button", { name: "Modifier" })).toHaveLength(2);
+  });
+});

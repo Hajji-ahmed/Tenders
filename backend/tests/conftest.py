@@ -4,9 +4,11 @@ from pathlib import Path
 # Variables d'environnement de test — posées AVANT tout import de l'application.
 # DATABASE_URL est FORCÉE (pas setdefault) : une URL de dev présente dans l'environnement ne doit
 # jamais atteindre la fixture `engine`, qui fait drop_all.
+# 127.0.0.1 et non localhost : Docker n'écoute qu'en IPv4 et la tentative IPv6 (::1) bloque ~200 s
+# sous Windows avant de se rabattre sur IPv4 (chaque session pytest durait 5 min au lieu de 1).
 os.environ["APP_ENV"] = "test"
 os.environ["DATABASE_URL"] = os.environ.get(
-    "TEST_DATABASE_URL", "postgresql+psycopg://tender:tender@localhost:5433/tender_test"
+    "TEST_DATABASE_URL", "postgresql+psycopg://tender:tender@127.0.0.1:5433/tender_test"
 )
 os.environ.setdefault("SECRET_KEY", "test-secret-key-test-secret-key-0123456789")
 os.environ.setdefault("STORAGE_BACKEND", "local")
@@ -20,6 +22,11 @@ from sqlalchemy.engine import make_url  # noqa: E402
 from sqlalchemy.orm import Session  # noqa: E402
 
 import app.core.deps as deps  # noqa: E402
+from app.ai.llm import FakeLLM  # noqa: E402
+from app.connectors.crawl.fake import FakeCrawler  # noqa: E402
+from app.connectors.extractor import FakeTenderExtractor  # noqa: E402
+from app.connectors.rss import FakeRss  # noqa: E402
+from app.connectors.search.fake import FakeWebSearch  # noqa: E402
 from app.connectors.storage.local import LocalStorage  # noqa: E402
 from app.core.db import get_db, make_engine  # noqa: E402
 from app.core.security import hash_password  # noqa: E402
@@ -31,8 +38,11 @@ from app.models import (  # noqa: E402
     Company,
     CompanyProfile,
     Project,
+    SearchProfile,
+    SourceKind,
     Technology,
     TechnologyCategory,
+    TenderSource,
     User,
 )
 
@@ -77,6 +87,68 @@ def storage(tmp_path, monkeypatch):
     st = LocalStorage(tmp_path / "storage")
     monkeypatch.setattr(deps, "_storage_override", st)
     return st
+
+
+# Fournisseurs externes simulés, injectés via deps._<nom>_override : les services et les tâches les
+# obtiennent par deps.get_web_search() / get_crawler() / get_llm() / get_tender_extractor().
+
+
+@pytest.fixture
+def fake_search(monkeypatch) -> FakeWebSearch:
+    fake = FakeWebSearch()
+    monkeypatch.setattr(deps, "_web_search_override", fake)
+    return fake
+
+
+@pytest.fixture
+def fake_crawler(monkeypatch) -> FakeCrawler:
+    fake = FakeCrawler()
+    monkeypatch.setattr(deps, "_crawler_override", fake)
+    return fake
+
+
+@pytest.fixture
+def fake_llm(monkeypatch) -> FakeLLM:
+    fake = FakeLLM()
+    monkeypatch.setattr(deps, "_llm_override", fake)
+    return fake
+
+
+@pytest.fixture
+def fake_extractor(monkeypatch) -> FakeTenderExtractor:
+    fake = FakeTenderExtractor()
+    monkeypatch.setattr(deps, "_tender_extractor_override", fake)
+    return fake
+
+
+@pytest.fixture
+def fake_rss(monkeypatch) -> FakeRss:
+    fake = FakeRss()
+    monkeypatch.setattr(deps, "_rss_override", fake)
+    return fake
+
+
+@pytest.fixture
+def search_profile(db) -> SearchProfile:
+    """Profil « IT Maroc » : mots-clés SI/ERP, secteur IT, pays MA."""
+    p = SearchProfile(name="IT Maroc", keywords=["SI", "ERP"], sectors=["IT"], countries=["MA"])
+    db.add(p)
+    db.flush()
+    return p
+
+
+@pytest.fixture
+def two_sources(db) -> list[TenderSource]:
+    """Un moteur de recherche (sans restriction de domaine) et un flux RSS."""
+    sources = [
+        TenderSource(
+            name="Tavily", kind=SourceKind.search_engine, config={"include_domains": []}, priority=10
+        ),
+        TenderSource(name="Flux portail", kind=SourceKind.rss, base_url="https://feed/rss", priority=20),
+    ]
+    db.add_all(sources)
+    db.flush()
+    return sources
 
 
 @pytest.fixture

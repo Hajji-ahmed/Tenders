@@ -13,11 +13,11 @@ class Settings(BaseSettings):
 
     app_env: Literal["dev", "test", "staging", "prod"] = "dev"
     secret_key: str = Field(min_length=32)
-    database_url: str = "postgresql+psycopg://tender:tender@localhost:5433/tender"
-    redis_url: str = "redis://localhost:6379/0"
+    database_url: str = "postgresql+psycopg://tender:tender@127.0.0.1:5433/tender"
+    redis_url: str = "redis://127.0.0.1:6379/0"
 
     storage_backend: Literal["s3", "local"] = "s3"
-    storage_endpoint: str = "http://localhost:9000"
+    storage_endpoint: str = "http://127.0.0.1:9000"
     storage_bucket: str = "tender-ai"
     storage_access_key: str = ""
     storage_secret_key: str = ""

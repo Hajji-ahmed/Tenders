@@ -45,9 +45,12 @@ def build_crud_router(
     tag: str,
     order_by: Any = None,
     scoped_to_company: bool = True,
+    audit_action: str = AUDIT_ACTION,
 ) -> APIRouter:
+    """`order_by` : une expression ou un tuple d'expressions ; `audit_action` : action journalisée."""
     router = APIRouter(prefix=prefix, tags=[tag], dependencies=[Depends(get_current_user)])
-    order = order_by if order_by is not None else model.created_at.desc()
+    default_order = order_by if order_by is not None else model.created_at.desc()
+    order = default_order if isinstance(default_order, tuple) else (default_order,)
     label = model.__name__
     page_model = Page[read_schema]  # type: ignore[valid-type]
 
@@ -63,7 +66,7 @@ def build_crud_router(
     def _audit(db: Session, entity_id: UUID, user: User, **payload: Any) -> None:
         record_audit(
             db,
-            action=AUDIT_ACTION,
+            action=audit_action,
             entity_kind=model.__tablename__,
             entity_id=entity_id,
             payload=payload,
@@ -76,7 +79,7 @@ def build_crud_router(
         if scoped_to_company:
             query = query.where(model.company_id == _company_id(db))
         total = db.scalar(select(func.count()).select_from(query.subquery())) or 0
-        items = db.scalars(query.order_by(order).offset(p.offset).limit(p.size)).all()
+        items = db.scalars(query.order_by(*order).offset(p.offset).limit(p.size)).all()
         return page_model(items=items, total=total, page=p.page, size=p.size)
 
     @router.post("", response_model=read_schema, status_code=201)
