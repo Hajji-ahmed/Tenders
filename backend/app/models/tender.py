@@ -130,6 +130,10 @@ class Tender(UUIDMixin, TimestampMixin, Base):
     description: Mapped[str | None] = mapped_column(Text)
     summary: Mapped[str | None] = mapped_column(Text)
     fingerprint: Mapped[str | None] = mapped_column(String(40), index=True)  # RB-001 (Phase 4)
+    # Formes comparables (services/normalize) : règles « référence + organisme » et « titre proche ».
+    norm_title: Mapped[str | None] = mapped_column(String(512))
+    norm_org: Mapped[str | None] = mapped_column(String(255), index=True)
+    norm_reference: Mapped[str | None] = mapped_column(String(128), index=True)
     status: Mapped[TenderStatus] = mapped_column(String(16), default=TenderStatus.NOUVEAU, index=True)
     urgency: Mapped[Urgency] = mapped_column(String(16), default=Urgency.none)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, index=True)  # RB-002

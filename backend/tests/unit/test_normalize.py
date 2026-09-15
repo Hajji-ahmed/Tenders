@@ -16,7 +16,7 @@ def test_normalize_country_and_reference():
             title="  Refonte   du SI ", organization="Ministère X", country="Maroc", reference="ao 12-2026/A"
         )
     )
-    assert n.country == "MA" and n.norm_reference == "AO122026/A" and n.title == "Refonte du SI"
+    assert n.country == "MA" and n.norm_reference == "AO122026A" and n.title == "Refonte du SI"
     assert n.norm_title == "refonte du si" and n.norm_org == "ministere x"
 
 

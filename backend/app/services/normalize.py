@@ -12,7 +12,7 @@ from app.services.query_builder import COUNTRY_NAMES_FR
 
 _PUNCT = re.compile(r"[^\w\s]", re.UNICODE)
 _SPACES = re.compile(r"\s+")
-_REF_JUNK = re.compile(r"[\s\-_.]+")
+_REF_JUNK = re.compile(r"[\s\-_./\\]+")  # « AO 12/2026 » et « AO-12-2026 » = même référence
 
 
 def strip_accents(text: str) -> str:
@@ -31,7 +31,7 @@ def norm_text(text: str | None) -> str:
 
 
 def norm_reference(ref: str | None) -> str | None:
-    """Référence comparable : majuscules sans espaces, tirets, points ni soulignés ; None si vide."""
+    """Référence comparable : majuscules, sans espaces ni séparateurs (- _ . /) ; None si vide."""
     cleaned = _REF_JUNK.sub("", strip_accents(ref or "")).upper()
     return cleaned or None
 
