@@ -79,3 +79,11 @@ def test_tender_cascades_links_and_documents(db):
     assert db.scalar(select(TenderDocument).where(TenderDocument.name == "DCE.pdf")) is None
     # Le profil et la source survivent à la suppression de l'opportunité.
     assert db.get(SearchProfile, p.id) is not None and db.get(TenderSource, s.id) is not None
+
+
+def test_tender_embedding_column_stores_a_vector(db):
+    t = Tender(title="AO vecteur", embedding=[0.0] * 1535 + [1.0])
+    db.add(t)
+    db.flush()
+    db.expire(t)
+    assert len(list(t.embedding)) == 1536 and float(t.embedding[-1]) == 1.0

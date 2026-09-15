@@ -6,7 +6,8 @@ import enum
 import uuid
 from datetime import UTC, date, datetime
 
-from sqlalchemy import ARRAY, JSON, Boolean, Date, DateTime, ForeignKey, Integer, Numeric, String, Text
+from pgvector.sqlalchemy import Vector
+from sqlalchemy import ARRAY, JSON, Boolean, Date, DateTime, ForeignKey, Index, Integer, Numeric, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin, UUIDMixin
@@ -96,8 +97,20 @@ class TenderSource(UUIDMixin, TimestampMixin, Base):
     last_error: Mapped[str | None] = mapped_column(Text)
 
 
+EMBEDDING_DIMENSIONS = 1536  # text-embedding-3-small
+
+
 class Tender(UUIDMixin, TimestampMixin, Base):
     __tablename__ = "tenders"
+    __table_args__ = (
+        # Recherche des voisins sémantiques (déduplication RB-001, recherche interne) en distance cosinus.
+        Index(
+            "ix_tenders_embedding_hnsw",
+            "embedding",
+            postgresql_using="hnsw",
+            postgresql_ops={"embedding": "vector_cosine_ops"},
+        ),
+    )
 
     reference: Mapped[str | None] = mapped_column(String(128), index=True)
     title: Mapped[str] = mapped_column(String(512))
@@ -125,6 +138,7 @@ class Tender(UUIDMixin, TimestampMixin, Base):
     )
     raw: Mapped[dict | None] = mapped_column(JSON)  # sortie brute de l'extracteur
     extra: Mapped[dict] = mapped_column(JSON, default=dict)
+    embedding: Mapped[list[float] | None] = mapped_column(Vector(EMBEDDING_DIMENSIONS))  # titre + description
 
     source_links: Mapped[list["TenderSourceLink"]] = relationship(
         back_populates="tender", cascade="all, delete-orphan", passive_deletes=True
