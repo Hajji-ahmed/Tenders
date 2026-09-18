@@ -10,7 +10,12 @@ celery_app = Celery(
     broker=_settings.redis_url,
     backend=_settings.redis_url,
     # Chaque phase ajoute ici ses modules de tâches (côté worker ; les tests importent app.workers.tasks).
-    include=["app.workers.tasks.demo", "app.workers.tasks.scheduled", "app.workers.tasks.search"],
+    include=[
+        "app.workers.tasks.demo",
+        "app.workers.tasks.scheduled",
+        "app.workers.tasks.search",
+        "app.workers.tasks.scoring",
+    ],
 )
 
 celery_app.conf.update(

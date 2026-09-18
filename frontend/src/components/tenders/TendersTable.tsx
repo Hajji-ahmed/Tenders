@@ -1,14 +1,22 @@
 "use client";
 
 import { ExternalLink } from "lucide-react";
+import Link from "next/link";
+import { cn } from "cn";
 
 import { TenderSources } from "@/components/tenders/TenderSources";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { TENDER_STATUS_LABELS, urgencyOf, type UrgencyLevel } from "@/lib/tenders";
+import { TENDER_STATUS_LABELS, scoreLevel, urgencyOf, type ScoreLevel, type UrgencyLevel } from "@/lib/tenders";
 import type { Tender, TenderStatus } from "@/lib/types";
 
 type Props = { rows: Tender[]; emptyLabel?: string };
+
+export const SCORE_TEXT: Record<ScoreLevel, string> = {
+  high: "text-brand-green-dark",
+  medium: "text-brand-yellow-ink",
+  low: "text-destructive",
+};
 
 const URGENCY_VARIANT: Record<UrgencyLevel, "warning" | "warning-soft" | "info" | "muted" | "destructive"> = {
   critical: "warning", // signal fort : à traiter aujourd'hui
@@ -62,19 +70,23 @@ export function TendersTable({ rows, emptyLabel = "Aucune opportunité pour l'in
           return (
             <TableRow key={t.id}>
               <TableCell className="max-w-[26rem] whitespace-normal">
-                {t.source_url ? (
-                  <a
-                    href={t.source_url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-start gap-1.5 font-medium text-foreground hover:text-brand-green-dark hover:underline"
-                  >
-                    <span>{t.title}</span>
-                    <ExternalLink aria-hidden className="mt-0.5 size-3.5 shrink-0 text-brand-blue" />
-                  </a>
-                ) : (
-                  <span className="font-medium text-foreground">{t.title}</span>
-                )}
+                <div className="flex items-start gap-1.5">
+                  <Link href={`/tenders/${t.id}`} className="font-medium text-foreground hover:text-brand-green-dark hover:underline">
+                    {t.title}
+                  </Link>
+                  {t.source_url && (
+                    <a
+                      href={t.source_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      aria-label="Voir l'annonce"
+                      title="Voir l'annonce"
+                      className="mt-0.5 shrink-0 text-brand-blue hover:text-brand-blue-dark"
+                    >
+                      <ExternalLink aria-hidden className="size-3.5" />
+                    </a>
+                  )}
+                </div>
                 {t.sector && <p className="text-xs text-muted-foreground">{t.sector}</p>}
               </TableCell>
               <TableCell className="max-w-[16rem] truncate">{t.organization ?? <span className="text-muted-foreground">—</span>}</TableCell>
@@ -97,7 +109,9 @@ export function TendersTable({ rows, emptyLabel = "Aucune opportunité pour l'in
                     —
                   </span>
                 ) : (
-                  <span className="font-semibold text-brand-green-dark">{Math.round(t.score_total)}</span>
+                  <span data-level={scoreLevel(t.score_total).level} className={cn("font-semibold", SCORE_TEXT[scoreLevel(t.score_total).level])}>
+                    {t.score_total}
+                  </span>
                 )}
               </TableCell>
             </TableRow>

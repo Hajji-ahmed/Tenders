@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, KanbanSquare, Search } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -32,12 +32,18 @@ export default function TendersPage() {
         eyebrow="Veille"
         title="Opportunités"
         count={tenders.data ? total : undefined}
-        description="Appels d'offres collectés par vos recherches. Le score et la qualification arrivent avec l'étape suivante."
+        description="Appels d'offres collectés par vos recherches, avec leur score de pertinence. Ouvrez une fiche pour l'analyse et la décision GO / NO-GO."
         actions={
-          <Link href="/search-profiles" className={buttonVariants({ variant: "accent" })}>
-            <Search />
-            Lancer une recherche
-          </Link>
+          <>
+            <Link href="/tenders/kanban" className={buttonVariants({ variant: "outline" })}>
+              <KanbanSquare />
+              Pipeline
+            </Link>
+            <Link href="/search-profiles" className={buttonVariants({ variant: "accent" })}>
+              <Search />
+              Lancer une recherche
+            </Link>
+          </>
         }
       />
 
