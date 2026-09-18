@@ -55,6 +55,8 @@ function DialogContent({
         data-slot="dialog-content"
         className={cn(
           "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl bg-popover p-4 text-sm text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+          // Un formulaire long (profil de recherche : 14 champs) défile DANS la boîte, jamais hors écran.
+          "max-h-[calc(100dvh-2rem)] overflow-y-auto",
           // Filet vert 3 px en tête de la boîte (même vocabulaire que Card accent="green")
           "before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-[3px] before:rounded-t-xl before:bg-brand-green",
           className
@@ -104,7 +106,8 @@ function DialogFooter({
     <div
       data-slot="dialog-footer"
       className={cn(
-        "-mx-4 -mb-4 flex flex-col-reverse gap-2 rounded-b-xl border-t border-border bg-muted/50 p-4 sm:flex-row sm:justify-end",
+        // Collé en bas de la zone qui défile (fond opaque) : les boutons restent toujours visibles.
+        "sticky -bottom-4 -mx-4 -mb-4 flex flex-col-reverse gap-2 rounded-b-xl border-t border-border bg-muted p-4 sm:flex-row sm:justify-end",
         className
       )}
       {...props}

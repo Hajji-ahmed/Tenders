@@ -14,6 +14,17 @@ const fields: FieldSpec[] = [
 ];
 
 describe("EntityDialog", () => {
+  it("scrolls inside the viewport and keeps the footer reachable on long forms", () => {
+    // Constaté sur le formulaire de profil de recherche (14 champs) : la boîte dépassait l'écran
+    // et le bouton « Enregistrer » était hors de portée.
+    render(<EntityDialog open onOpenChange={() => {}} title="Ajouter" fields={fields} onSubmit={vi.fn()} />);
+    const content = screen.getByRole("dialog");
+    expect(content.className).toMatch(/max-h-\[calc\(100dvh-2rem\)\]/);
+    expect(content.className).toMatch(/overflow-y-auto/);
+    const footer = screen.getByRole("button", { name: /enregistrer/i }).closest("[data-slot=dialog-footer]");
+    expect(footer?.className).toMatch(/sticky/);
+  });
+
   it("submits typed values (numbers, dates, tags, booleans; empty → null)", async () => {
     const onSubmit = vi.fn().mockResolvedValue(undefined);
     render(<EntityDialog open onOpenChange={() => {}} title="Ajouter" fields={fields} onSubmit={onSubmit} />);
