@@ -75,3 +75,17 @@ def get_detail(db: Session, tender_id: UUID) -> Tender | None:
             selectinload(Tender.documents),
         )
     )
+
+
+def list_source_links(db: Session, tender_id: UUID) -> list[TenderSourceLink] | None:
+    """Provenances d'une fiche dans l'ordre de collecte ; None si la fiche n'existe pas."""
+    if db.scalar(select(Tender.id).where(Tender.id == tender_id)) is None:
+        return None
+    return list(
+        db.scalars(
+            select(TenderSourceLink)
+            .where(TenderSourceLink.tender_id == tender_id)
+            .options(selectinload(TenderSourceLink.source))
+            .order_by(TenderSourceLink.collected_at, TenderSourceLink.url)
+        )
+    )

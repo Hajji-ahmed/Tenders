@@ -2,6 +2,7 @@
 
 import { ExternalLink } from "lucide-react";
 
+import { TenderSources } from "@/components/tenders/TenderSources";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TENDER_STATUS_LABELS, urgencyOf, type UrgencyLevel } from "@/lib/tenders";
@@ -87,8 +88,8 @@ export function TendersTable({ rows, emptyLabel = "Aucune opportunité pour l'in
               <TableCell>
                 <Badge variant={STATUS_VARIANT[t.status] ?? "secondary"}>{TENDER_STATUS_LABELS[t.status]}</Badge>
               </TableCell>
-              <TableCell className="text-muted-foreground">
-                {t.source_count} source{t.source_count > 1 ? "s" : ""}
+              <TableCell>
+                <TenderSources tenderId={t.id} count={t.source_count} />
               </TableCell>
               <TableCell className="text-right tabular-nums">
                 {t.score_total === null ? (

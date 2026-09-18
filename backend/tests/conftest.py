@@ -22,6 +22,7 @@ from sqlalchemy.engine import make_url  # noqa: E402
 from sqlalchemy.orm import Session  # noqa: E402
 
 import app.core.deps as deps  # noqa: E402
+from app.ai.embeddings import FakeEmbeddings  # noqa: E402
 from app.ai.llm import FakeLLM  # noqa: E402
 from app.connectors.crawl.fake import FakeCrawler  # noqa: E402
 from app.connectors.extractor import FakeTenderExtractor  # noqa: E402
@@ -118,6 +119,13 @@ def fake_llm(monkeypatch) -> FakeLLM:
 def fake_extractor(monkeypatch) -> FakeTenderExtractor:
     fake = FakeTenderExtractor()
     monkeypatch.setattr(deps, "_tender_extractor_override", fake)
+    return fake
+
+
+@pytest.fixture
+def fake_embeddings(monkeypatch) -> FakeEmbeddings:
+    fake = FakeEmbeddings()
+    monkeypatch.setattr(deps, "_embeddings_override", fake)
     return fake
 
 

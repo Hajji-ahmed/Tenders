@@ -28,13 +28,19 @@ celery_app.conf.update(
         "interval_step": 0.5,
         "interval_max": 1,
     },
-    # Tâches périodiques (service `beat` du docker-compose) ; complété par les phases 4 et 11.
+    # Tâches périodiques (service `beat` du docker-compose) ; complété par la phase 11.
     beat_schedule={
         # RB-007 : chaque nuit à 01:00 UTC, les documents dont la date d'expiration est dépassée
         # passent `expired`.
         "refresh-document-expiry": {
             "task": "tender_ai.scheduled.refresh_document_expiry",
             "schedule": crontab(hour=1, minute=0),
+        },
+        # RB-002 : chaque nuit à 02:00 UTC, les opportunités dont l'échéance est passée deviennent
+        # inactives et l'urgence des actives est recalculée.
+        "refresh-tender-deadlines": {
+            "task": "tender_ai.scheduled.refresh_tender_deadlines",
+            "schedule": crontab(hour=2, minute=0),
         },
     },
 )

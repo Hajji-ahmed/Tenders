@@ -100,6 +100,27 @@ def test_refusal_or_missing_parse_raises_llm_error_without_retry():
     assert len(client.parse_calls) == 1
 
 
+def test_structured_output_is_bounded_and_truncation_is_an_llm_error():
+    """Constaté avec Tavily : sur une page de listing, le modèle a généré 32 768 jetons (4 min 45 s)
+    avant l'échec. Une sortie structurée est bornée et une troncature échoue vite, sans retry."""
+    client = _FakeOpenAI([_completion(parsed=Answer(value=1))])
+    llm = OpenAILLM(_settings(), client=client, retry_wait=0)
+    llm.structured(system="s", user="u", output=Answer)
+    assert client.parse_calls[0]["max_tokens"] == 4096
+
+    completion = SimpleNamespace(choices=[SimpleNamespace(finish_reason="length")], usage=None)
+    client = _FakeOpenAI([openai.LengthFinishReasonError(completion=completion)])
+    llm = OpenAILLM(_settings(), client=client, retry_wait=0)
+    with pytest.raises(LLMError, match="tronquée"):
+        llm.structured(system="s", user="u", output=Answer)
+    assert len(client.parse_calls) == 1
+
+
+def test_real_client_has_a_request_timeout():
+    llm = OpenAILLM(_settings())  # client OpenAI réel, aucun appel réseau
+    assert llm._client.timeout == 120
+
+
 def test_text_uses_plain_completion():
     client = _FakeOpenAI([], create_script=[_completion(content="  Résumé.  ")])
     llm = OpenAILLM(_settings(), client=client, retry_wait=0)

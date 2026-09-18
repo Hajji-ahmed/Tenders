@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { api } from "@/lib/api";
-import type { Page, Tender, TenderDetail, TenderStatus } from "@/lib/types";
+import type { Page, Tender, TenderDetail, TenderSourceLink, TenderStatus } from "@/lib/types";
 
 export type TenderFilters = {
   q?: string;
@@ -20,6 +20,7 @@ export const tenderKeys = {
   all: ["tenders"] as const,
   list: (filters: TenderFilters) => ["tenders", "list", filters] as const,
   detail: (id: string) => ["tenders", "detail", id] as const,
+  sources: (id: string) => ["tenders", "detail", id, "sources"] as const,
 };
 
 function toQuery(filters: TenderFilters): string {
@@ -43,5 +44,14 @@ export function useTender(id: string | null) {
     queryKey: tenderKeys.detail(id ?? ""),
     queryFn: () => api<TenderDetail>(`/tenders/${id}`),
     enabled: id !== null,
+  });
+}
+
+/** Annonces à l'origine d'une fiche (doublons regroupés) — chargées à la demande (`enabled`). */
+export function useTenderSources(id: string, { enabled = true }: { enabled?: boolean } = {}) {
+  return useQuery({
+    queryKey: tenderKeys.sources(id),
+    queryFn: () => api<TenderSourceLink[]>(`/tenders/${id}/sources`),
+    enabled,
   });
 }

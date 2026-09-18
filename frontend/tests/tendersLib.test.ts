@@ -6,13 +6,16 @@ import { TENDER_STATUS_LABELS, urgencyOf } from "@/lib/tenders";
 import type { Job } from "@/lib/types";
 
 describe("urgencyOf", () => {
-  it("derives the urgency badge from the days left", () => {
+  it("derives the urgency badge from the days left, with the RB-002 thresholds of the API", () => {
     expect(urgencyOf(null)).toEqual({ level: "none", label: "Sans échéance" });
     expect(urgencyOf(-1)).toEqual({ level: "expired", label: "Dépassée" });
     expect(urgencyOf(0)).toEqual({ level: "critical", label: "Aujourd'hui" });
     expect(urgencyOf(2)).toEqual({ level: "critical", label: "2 j" });
+    expect(urgencyOf(3)).toEqual({ level: "high", label: "3 j" });
     expect(urgencyOf(7)).toEqual({ level: "high", label: "7 j" });
-    expect(urgencyOf(20)).toEqual({ level: "medium", label: "20 j" });
+    expect(urgencyOf(8)).toEqual({ level: "medium", label: "8 j" });
+    expect(urgencyOf(14)).toEqual({ level: "medium", label: "14 j" });
+    expect(urgencyOf(15)).toEqual({ level: "low", label: "15 j" });
     expect(urgencyOf(45)).toEqual({ level: "low", label: "45 j" });
   });
 

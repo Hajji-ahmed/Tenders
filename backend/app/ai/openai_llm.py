@@ -21,6 +21,10 @@ RETRYABLE = (
     openai.APITimeoutError,
     openai.InternalServerError,
 )
+REQUEST_TIMEOUT_S = 120.0  # par tentative ; le SDK attend 10 min par défaut
+# Une sortie structurée (candidat, score, questions) tient en quelques centaines de jetons : sans
+# borne, un modèle qui s'emballe sur une page de listing génère jusqu'à 32 k jetons (≈ 5 min).
+STRUCTURED_MAX_TOKENS = 4096
 
 
 class _OpenAILike(Protocol):
@@ -36,7 +40,7 @@ class OpenAILLM:
         retries: int = 3,
         retry_wait: float = 1.0,
     ):
-        self._client = client or openai.OpenAI(api_key=settings.openai_api_key)
+        self._client = client or openai.OpenAI(api_key=settings.openai_api_key, timeout=REQUEST_TIMEOUT_S)
         self._models: dict[Tier, str] = {
             "fast": settings.openai_model_fast,
             "strong": settings.openai_model_strong,
@@ -68,13 +72,19 @@ class OpenAILLM:
         self, *, system: str, user: str, output: type[T], tier: Tier = "fast", temperature: float = 0.0
     ) -> T:
         started = time.perf_counter()
-        completion = self._retrying()(
-            self._client.chat.completions.parse,
-            model=self._models[tier],
-            messages=[{"role": "system", "content": system}, {"role": "user", "content": user}],
-            response_format=output,
-            temperature=temperature,
-        )
+        try:
+            completion = self._retrying()(
+                self._client.chat.completions.parse,
+                model=self._models[tier],
+                messages=[{"role": "system", "content": system}, {"role": "user", "content": user}],
+                response_format=output,
+                temperature=temperature,
+                max_tokens=STRUCTURED_MAX_TOKENS,
+            )
+        except openai.LengthFinishReasonError as e:
+            raise LLMError(
+                f"Sortie structurée tronquée ({output.__name__}, limite de {STRUCTURED_MAX_TOKENS} jetons)"
+            ) from e
         self._log("structured", tier, completion, started)
         message = completion.choices[0].message
         if getattr(message, "parsed", None) is None:

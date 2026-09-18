@@ -55,6 +55,7 @@ def search_tenders(db, job, *, search_profile_id: str) -> dict:
             "kind": str(source.kind),
             **report.as_dict(),
             **stats.as_dict(),
+            "details": stats.details,
         }
         log.info("search.source_done", source=source.name, **report.as_dict(), **stats.as_dict())
 

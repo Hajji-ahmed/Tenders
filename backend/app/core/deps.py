@@ -13,6 +13,7 @@ import jwt
 from fastapi import Depends, Request
 from sqlalchemy.orm import Session
 
+from app.ai.embeddings import EmbeddingProvider, FakeEmbeddings, OpenAIEmbeddings
 from app.ai.llm import FakeLLM, LLMProvider
 from app.ai.openai_llm import OpenAILLM
 from app.connectors.crawl.base import CrawlerProvider
@@ -39,6 +40,7 @@ __all__ = [
     "COOKIE_NAME",
     "get_crawler",
     "get_current_user",
+    "get_embeddings",
     "get_js_crawler",
     "get_llm",
     "get_rss",
@@ -53,6 +55,7 @@ _crawler_override: CrawlerProvider | None = None
 _llm_override: LLMProvider | None = None
 _tender_extractor_override: TenderExtractor | None = None
 _rss_override: RssConnector | FakeRss | None = None
+_embeddings_override: EmbeddingProvider | None = None
 
 
 @lru_cache
@@ -145,6 +148,20 @@ def _default_rss() -> RssConnector | FakeRss:
 
 def get_rss() -> RssConnector | FakeRss:
     return _rss_override or _default_rss()
+
+
+@lru_cache
+def _default_embeddings() -> EmbeddingProvider:
+    s = get_settings()
+    if s.is_test:
+        return FakeEmbeddings(s.embedding_dimensions)
+    if not s.openai_api_key:
+        raise _not_configured("d'embeddings", "OPENAI_API_KEY")
+    return OpenAIEmbeddings(s)
+
+
+def get_embeddings() -> EmbeddingProvider:
+    return _embeddings_override or _default_embeddings()
 
 
 def get_current_user(request: Request, db: Session = Depends(get_db)) -> User:

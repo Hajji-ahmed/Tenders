@@ -14,7 +14,7 @@ from app.core.errors import NotFoundError
 from app.models.tender import TenderStatus
 from app.repositories import tenders as tenders_repo
 from app.schemas.common import Page
-from app.schemas.tender import SortKey, TenderDetailOut, TenderOut
+from app.schemas.tender import SortKey, TenderDetailOut, TenderOut, TenderSourceLinkOut
 
 router = APIRouter(prefix="/tenders", tags=["tenders"], dependencies=[Depends(get_current_user)])
 
@@ -56,3 +56,13 @@ def get_tender(tender_id: UUID, db: Session = Depends(get_db)):
     if tender is None:
         raise NotFoundError("Opportunité introuvable")
     return tender
+
+
+@router.get("/{tender_id}/sources", response_model=list[TenderSourceLinkOut])
+def list_tender_sources(tender_id: UUID, db: Session = Depends(get_db)):
+    """Annonces à l'origine de la fiche (une par URL), dans l'ordre de collecte : les doublons
+    fusionnés (RB-001) y apparaissent comme autant de provenances."""
+    links = tenders_repo.list_source_links(db, tender_id)
+    if links is None:
+        raise NotFoundError("Opportunité introuvable")
+    return links

@@ -18,8 +18,10 @@ type Props = {
 function summary(result: Job["result"]): string | null {
   if (!result) return null;
   const created = Number(result.created ?? 0);
+  const merged = Number(result.merged ?? 0);
   const skipped = Number(result.skipped ?? 0);
   const parts = [`${created} nouvelle${created > 1 ? "s" : ""} opportunité${created > 1 ? "s" : ""}`];
+  if (merged) parts.push(`${merged} annonce${merged > 1 ? "s" : ""} fusionnée${merged > 1 ? "s" : ""}`);
   if (skipped) parts.push(`${skipped} déjà connue${skipped > 1 ? "s" : ""}`);
   return parts.join(" · ");
 }

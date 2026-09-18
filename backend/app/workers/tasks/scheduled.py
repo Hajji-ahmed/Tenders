@@ -6,6 +6,7 @@ Règle d'import : les tâches importent les services, jamais l'inverse.
 
 from app.core.db import SessionLocal
 from app.core.logging import get_logger
+from app.services import deadlines
 from app.services.documents import refresh_expiry_statuses
 from app.workers.celery_app import celery_app
 
@@ -21,3 +22,14 @@ def refresh_document_expiry() -> int:
         db.commit()
     log.info("scheduled.refresh_document_expiry", expired=count)
     return count
+
+
+@celery_app.task(name="tender_ai.scheduled.refresh_tender_deadlines")
+def refresh_tender_deadlines() -> dict[str, int]:
+    """RB-002 : désactive les opportunités dont l'échéance est passée et recalcule l'urgence des
+    actives. Renvoie `{"expired": n, "updated": m}`."""
+    with SessionLocal() as db:
+        result = deadlines.refresh_tender_deadlines(db)
+        db.commit()
+    log.info("scheduled.refresh_tender_deadlines", **result)
+    return result
