@@ -305,3 +305,53 @@ export type TenderDetail = Tender & {
   source_links: TenderSourceLink[];
   documents: TenderDocumentRef[];
 };
+
+// --- Score, décision, statut (Phase 5) ---
+
+export type ScoreKey =
+  | "sector"
+  | "technologies"
+  | "skills"
+  | "country"
+  | "budget"
+  | "experience"
+  | "certifications"
+  | "eligibility";
+
+export type SubScore = {
+  key: ScoreKey | string;
+  score: number;
+  weight: number;
+  reason: string;
+  matched: string[];
+  missing: string[];
+};
+
+export type TenderScore = {
+  id: string;
+  tender_id: string;
+  total: number;
+  breakdown: SubScore[];
+  strengths: string[];
+  weaknesses: string[];
+  justification: string;
+  ai_adjustment: number;
+  model: string | null;
+  prompt_version: string | null;
+  scoring_version: string;
+  computed_at: string;
+};
+
+export type DecisionKind = "go" | "no_go";
+
+export type StatusHistoryEntry = {
+  id: string;
+  from_status: TenderStatus | null;
+  to_status: TenderStatus;
+  comment: string | null;
+  changed_by: string | null;
+  changed_at: string;
+};
+
+export type KanbanColumn = { status: TenderStatus; items: Tender[] };
+export type Kanban = { columns: KanbanColumn[] };

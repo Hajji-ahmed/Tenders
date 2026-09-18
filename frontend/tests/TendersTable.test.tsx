@@ -66,7 +66,8 @@ beforeEach(() => {
 describe("TendersTable", () => {
   it("renders organisation, country, deadline with urgency, status, sources and score placeholder", () => {
     render(<TendersTable rows={[tender({})]} />);
-    expect(screen.getByRole("link", { name: /Refonte du SI/ })).toHaveAttribute("href", "https://portail.ma/ao/1");
+    expect(screen.getByRole("link", { name: "Refonte du SI" })).toHaveAttribute("href", "/tenders/t1");
+    expect(screen.getByRole("link", { name: /voir l'annonce/i })).toHaveAttribute("href", "https://portail.ma/ao/1");
     expect(screen.getByText("Commune de Rabat")).toBeInTheDocument();
     expect(screen.getByText("MA")).toBeInTheDocument();
     expect(screen.getByText("30/10/2026")).toBeInTheDocument();
@@ -74,6 +75,12 @@ describe("TendersTable", () => {
     expect(screen.getByText("Nouveau")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /2 sources/ })).toBeInTheDocument();
     expect(screen.getByLabelText("Score non calculé")).toHaveTextContent("—");
+  });
+
+  it("shows the score with its level colour when computed", () => {
+    render(<TendersTable rows={[tender({ score_total: 72.5 })]} />);
+    expect(screen.getByText("72.5")).toBeInTheDocument();
+    expect(screen.getByText("72.5")).toHaveAttribute("data-level", "high");
   });
 
   it("flags a merged tender (several announcements) and not a single-source one", () => {

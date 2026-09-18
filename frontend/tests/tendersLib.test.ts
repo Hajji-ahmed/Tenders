@@ -2,8 +2,37 @@ import { describe, expect, it } from "vitest";
 
 import { pollInterval } from "@/lib/queries/jobs";
 import { configToFields, fieldsToConfig, SOURCE_KIND_LABELS, toSourcePayload } from "@/lib/sources";
-import { TENDER_STATUS_LABELS, urgencyOf } from "@/lib/tenders";
-import type { Job } from "@/lib/types";
+import { SCORE_LABELS, TENDER_STATUS_LABELS, TRANSITIONS, canDecide, nextStatuses, scoreLevel, urgencyOf } from "@/lib/tenders";
+import type { Job, TenderStatus } from "@/lib/types";
+
+describe("scoreLevel", () => {
+  it("maps the total to the three colour levels of the score card", () => {
+    expect(scoreLevel(85)).toEqual({ level: "high", label: "Pertinent", variant: "success" });
+    expect(scoreLevel(70)).toEqual({ level: "high", label: "Pertinent", variant: "success" });
+    expect(scoreLevel(69.9)).toEqual({ level: "medium", label: "À étudier", variant: "warning" });
+    expect(scoreLevel(40)).toEqual({ level: "medium", label: "À étudier", variant: "warning" });
+    expect(scoreLevel(39.9)).toEqual({ level: "low", label: "Peu pertinent", variant: "destructive" });
+  });
+
+  it("labels the eight criteria in French", () => {
+    expect(Object.keys(SCORE_LABELS)).toEqual([
+      "sector", "technologies", "skills", "country", "budget", "experience", "certifications", "eligibility",
+    ]);
+    expect(SCORE_LABELS.eligibility).toBe("Éligibilité");
+  });
+});
+
+describe("status machine mirror", () => {
+  it("lists the reachable statuses and knows when a decision is possible", () => {
+    expect(Object.keys(TRANSITIONS)).toHaveLength(11);
+    expect(nextStatuses("SOUMIS")).toEqual(["GAGNE", "PERDU"]);
+    expect(nextStatuses("ARCHIVE")).toEqual([]);
+    const decidable: TenderStatus[] = ["NOUVEAU", "A_ANALYSER", "GO", "NO_GO", "PREPARATION"];
+    expect(decidable.map((s) => canDecide(s, "go"))).toEqual([true, true, false, true, false]);
+    expect(decidable.map((s) => canDecide(s, "no_go"))).toEqual([true, true, true, false, true]);
+    expect(canDecide("SOUMIS", "go")).toBe(false);
+  });
+});
 
 describe("urgencyOf", () => {
   it("derives the urgency badge from the days left, with the RB-002 thresholds of the API", () => {
