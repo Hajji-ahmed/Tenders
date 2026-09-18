@@ -1,10 +1,11 @@
 """Recherche et collecte des appels d'offres : profils de recherche, sources, opportunités
-(`tenders`), liens de provenance et pièces jointes. La colonne `embedding` de `tenders` et la
-déduplication sémantique arrivent en Phase 4 ; les scores en Phase 5."""
+(`tenders`), liens de provenance et pièces jointes. La colonne `embedding` de `tenders` sert à la
+déduplication sémantique (Phase 4) ; score, décisions et historique sont dans `models/scoring`."""
 
 import enum
 import uuid
 from datetime import UTC, date, datetime
+from typing import TYPE_CHECKING
 
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import ARRAY, JSON, Boolean, Date, DateTime, ForeignKey, Index, Integer, Numeric, String, Text
@@ -12,6 +13,9 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin, UUIDMixin
 from app.models.document import ExtractionStatus
+
+if TYPE_CHECKING:
+    from app.models.scoring import TenderDecision, TenderScore, TenderStatusHistory
 
 
 class TenderStatus(enum.StrEnum):
@@ -149,6 +153,22 @@ class Tender(UUIDMixin, TimestampMixin, Base):
     )
     documents: Mapped[list["TenderDocument"]] = relationship(
         back_populates="tender", cascade="all, delete-orphan", passive_deletes=True
+    )
+    # Phase 5 (models/scoring) : un score unique, des décisions et un historique de statuts.
+    score: Mapped["TenderScore | None"] = relationship(
+        back_populates="tender", cascade="all, delete-orphan", passive_deletes=True, uselist=False
+    )
+    decisions: Mapped[list["TenderDecision"]] = relationship(
+        back_populates="tender",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        order_by="TenderDecision.decided_at",
+    )
+    status_history: Mapped[list["TenderStatusHistory"]] = relationship(
+        back_populates="tender",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        order_by="TenderStatusHistory.changed_at",
     )
 
     @property

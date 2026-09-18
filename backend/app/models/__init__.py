@@ -23,6 +23,7 @@ from app.models.document import (
     ExtractionStatus,
 )
 from app.models.job import Job, JobStatus
+from app.models.scoring import DecisionKind, TenderDecision, TenderScore, TenderStatusHistory
 from app.models.tender import (
     DownloadStatus,
     SearchProfile,
@@ -44,6 +45,7 @@ __all__ = [
     "Company",
     "CompanyDocument",
     "CompanyProfile",
+    "DecisionKind",
     "DocumentCategory",
     "DocumentKind",
     "DocumentStatus",
@@ -62,10 +64,13 @@ __all__ = [
     "Technology",
     "TechnologyCategory",
     "Tender",
+    "TenderDecision",
     "TenderDocument",
+    "TenderScore",
     "TenderSource",
     "TenderSourceLink",
     "TenderStatus",
+    "TenderStatusHistory",
     "Urgency",
     "User",
 ]
