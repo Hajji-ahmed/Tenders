@@ -4,6 +4,7 @@ casse ni ponctuation), pays en ISO-2, devise ISO-4217, et empreinte stable `fing
 import hashlib
 import re
 import unicodedata
+from urllib.parse import unquote, urlparse
 
 import pycountry
 
@@ -59,6 +60,12 @@ def country_code(value: str | None) -> str | None:
 def currency_code(value: str | None) -> str | None:
     text = squeeze(value).upper()
     return text if len(text) == 3 and text.isalpha() else None
+
+
+def document_name(url: str) -> str:
+    """Nom lisible d'une pièce depuis son URL (dernier segment décodé), « document » à défaut."""
+    last = unquote(urlparse(url).path.rstrip("/").rsplit("/", 1)[-1]).strip()
+    return last[:255] or "document"
 
 
 class NormalizedTender(TenderCandidate):

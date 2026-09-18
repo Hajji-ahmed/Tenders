@@ -9,6 +9,7 @@ from functools import lru_cache
 from pathlib import Path
 from uuid import UUID
 
+import httpx
 import jwt
 from fastapi import Depends, Request
 from sqlalchemy.orm import Session
@@ -35,11 +36,13 @@ from app.core.errors import COOKIE_NAME, UnauthorizedError
 from app.core.security import decode_access_token
 from app.models import User
 from app.repositories import users as users_repo
+from app.services.tender_documents import build_download_client
 
 __all__ = [
     "COOKIE_NAME",
     "get_crawler",
     "get_current_user",
+    "get_download_client",
     "get_embeddings",
     "get_js_crawler",
     "get_llm",
@@ -56,6 +59,7 @@ _llm_override: LLMProvider | None = None
 _tender_extractor_override: TenderExtractor | None = None
 _rss_override: RssConnector | FakeRss | None = None
 _embeddings_override: EmbeddingProvider | None = None
+_download_client_override: httpx.Client | None = None
 
 
 @lru_cache
@@ -148,6 +152,18 @@ def _default_rss() -> RssConnector | FakeRss:
 
 def get_rss() -> RssConnector | FakeRss:
     return _rss_override or _default_rss()
+
+
+@lru_cache
+def _default_download_client() -> httpx.Client:
+    """Client HTTP des téléchargements de pièces ; en test, tout URL répond 404 (aucun réseau)."""
+    if get_settings().is_test:
+        return build_download_client(httpx.MockTransport(lambda request: httpx.Response(404)))
+    return build_download_client()
+
+
+def get_download_client() -> httpx.Client:
+    return _download_client_override or _default_download_client()
 
 
 @lru_cache

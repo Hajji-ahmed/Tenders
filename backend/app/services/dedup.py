@@ -4,7 +4,6 @@ déjà renseigné. La règle retenue est journalisée (audit `tender.merged`, ra
 
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, time, timedelta
-from urllib.parse import unquote, urlparse
 from uuid import UUID
 
 from rapidfuzz import fuzz
@@ -16,7 +15,7 @@ from app.ai.embeddings import EmbeddingProvider
 from app.core.audit import record_audit
 from app.core.logging import get_logger
 from app.models import Tender, TenderDocument, TenderSourceLink
-from app.services.normalize import NormalizedTender, embedding_text
+from app.services.normalize import NormalizedTender, document_name, embedding_text
 
 log = get_logger("dedup")
 
@@ -37,11 +36,6 @@ class DuplicateMatch:
 
 def end_of_day(d: date | None) -> datetime | None:
     return None if d is None else datetime.combine(d, time(23, 59, 59), tzinfo=UTC)
-
-
-def document_name(url: str) -> str:
-    last = unquote(urlparse(url).path.rstrip("/").rsplit("/", 1)[-1]).strip()
-    return last[:255] or "document"
 
 
 def same_organization(a: str | None, b: str | None) -> bool:

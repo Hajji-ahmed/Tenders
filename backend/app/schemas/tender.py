@@ -194,6 +194,7 @@ class TenderSourceLinkOut(BaseModel):
 
 
 class TenderDocumentOut(_Out):
+    tender_id: UUID
     name: str
     source_url: str | None
     mime_type: str | None
