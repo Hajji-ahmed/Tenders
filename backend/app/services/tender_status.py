@@ -59,6 +59,8 @@ def decide(
     """Enregistre la décision et amène la fiche en GO ou NO_GO (via A_ANALYSER si nécessaire)."""
     target = S.GO if decision == DecisionKind.go else S.NO_GO
     current = TenderStatus(tender.status)
+    if current == target:
+        raise ForbiddenTransition(f"Opportunité déjà en {target}")
     if (
         not can_transition(current, target)
         and can_transition(current, S.A_ANALYSER)

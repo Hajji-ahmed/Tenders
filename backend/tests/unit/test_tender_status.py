@@ -76,8 +76,13 @@ def test_decide_from_nouveau_or_no_go_passes_through_a_analyser(db):
     assert direct.status == TenderStatus.NO_GO and len(direct.status_history) == 1
 
 
-def test_decide_is_refused_when_the_workflow_has_moved_on(db):
+def test_decide_is_refused_when_the_workflow_has_moved_on_or_is_already_decided(db):
     t = _tender(db, TenderStatus.SOUMIS)
     with pytest.raises(ForbiddenTransition):
         decide(db, t, DecisionKind.go, reason=None, user=None)
     assert t.decisions == [] and t.status == TenderStatus.SOUMIS
+
+    refused = _tender(db, TenderStatus.NO_GO)
+    with pytest.raises(ForbiddenTransition, match="déjà"):  # pas d'aller-retour A_ANALYSER → NO_GO
+        decide(db, refused, DecisionKind.no_go, reason=None, user=None)
+    assert refused.status_history == []
