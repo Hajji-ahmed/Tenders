@@ -21,15 +21,16 @@ export const TENDER_STATUS_OPTIONS = (Object.keys(TENDER_STATUS_LABELS) as Tende
 
 export type UrgencyLevel = "none" | "expired" | "critical" | "high" | "medium" | "low";
 
-/** Niveau d'urgence affiché depuis `days_left` : ≤ 3 j critique, ≤ 7 j haute, ≤ 30 j moyenne. */
+/** Niveau d'urgence affiché depuis `days_left`, mêmes seuils que RB-002 côté API (`compute_urgency`) :
+ * ≤ 2 j critique, 3–7 j haute, 8–14 j moyenne, au-delà basse. */
 export function urgencyOf(daysLeft: number | null): { level: UrgencyLevel; label: string } {
   if (daysLeft === null) return { level: "none", label: "Sans échéance" };
   if (daysLeft < 0) return { level: "expired", label: "Dépassée" };
   if (daysLeft === 0) return { level: "critical", label: "Aujourd'hui" };
   const label = `${daysLeft} j`;
-  if (daysLeft <= 3) return { level: "critical", label };
+  if (daysLeft <= 2) return { level: "critical", label };
   if (daysLeft <= 7) return { level: "high", label };
-  if (daysLeft <= 30) return { level: "medium", label };
+  if (daysLeft <= 14) return { level: "medium", label };
   return { level: "low", label };
 }
 

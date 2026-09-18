@@ -40,11 +40,11 @@ describe("JobProgress", () => {
     expect(screen.getByText(/en cours/i)).toBeInTheDocument();
   });
 
-  it("shows « Terminé » with the created count when done", () => {
-    state.job = { ...base, status: "done", progress: 100, result: { created: 3, skipped: 1, invalid: 0 } };
+  it("shows « Terminé » with the created, merged and known counts when done", () => {
+    state.job = { ...base, status: "done", progress: 100, result: { created: 3, merged: 2, skipped: 1, invalid: 0 } };
     render(<JobProgress jobId="j1" />);
     expect(screen.getByText("Terminé")).toBeInTheDocument();
-    expect(screen.getByText(/3 nouvelles opportunités/)).toBeInTheDocument();
+    expect(screen.getByText("3 nouvelles opportunités · 2 annonces fusionnées · 1 déjà connue")).toBeInTheDocument();
   });
 
   it("shows the error message when failed", () => {
