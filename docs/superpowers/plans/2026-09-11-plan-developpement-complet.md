@@ -2546,6 +2546,13 @@ def test_search_job_survives_source_failure(db, run_jobs_inline, search_profile,
 
 # PHASE 4 — Normalisation & déduplication (S5)
 
+> **Écarts constatés à l'exécution (18/09/2026) — à respecter dans les phases suivantes :**
+> - `IngestService(db, embeddings=None, dedup=None).ingest(report: SourceReport, profile)` : la signature v1 (rapport par source, qui porte `source_id` et les titres vus) est conservée, pas `ingest(candidates, profile, source)`. Un doublon par **URL** compte en `skipped` (pas `merged`) ; `IngestStats.details` = `{url, action, rule, tender_id}` par candidat (`rule` = règle RB-001 pour merged/skipped, motif `not_tender|low_confidence|empty_title|empty_url` pour invalid), exposé dans `job.result["sources"][id]["details"]`. Un seul appel `embed()` par passe.
+> - Règle 2 (référence + organisme) : deux `norm_org` désignent le même acheteur si **tous les mots de l'un figurent dans l'autre** (`same_organization`) — en parcours réel, l'extracteur rend « Commune de Salé (Maroc), Direction des services techniques » sur le portail et « Commune de Salé » sur l'agrégateur ; sans cela, seule la règle sémantique (OpenAI, cosinus ≥ 0,92) rattrapait le doublon. L'extraction brute d'une annonce fusionnée est conservée dans `TenderSourceLink.raw`.
+> - RB-002 : `services/deadlines.py` — `compute_urgency(days_left)` et `refresh_tender_deadlines(db)` en **une passe Python** sur les fiches actives (pas d'`UPDATE … rowcount` : mypy ne le type pas, cf. `documents.py`) ; une fiche inactive a toujours `urgency = none`. L'ingestion pose `is_active` et `urgency` à la création et recalcule l'urgence après une fusion qui apporte l'échéance. Tâche beat `tender_ai.scheduled.refresh_tender_deadlines` à 02:00 UTC. Tests datés avec `freezegun` (`freeze_time(NOW)` fonctionne avec PostgreSQL/psycopg).
+> - Frontend : `urgencyOf(days_left)` reprend les seuils de l'API (≤ 2 j critique, 3–7 haute, 8–14 moyenne) ; colonne « Sources » = `TenderSources` (bouton « N sources », bleu + icône quand N > 1) ouvrant un **popover** (`ui/popover`, Base UI — un tooltip ne peut pas porter de liens) alimenté par `useTenderSources(id, {enabled})` à l'ouverture ; le toggle « Inclure les expirées » existait déjà (3.7). `JobProgress` résume « N nouvelles · M annonces fusionnées · K déjà connues ».
+> - `GET /tenders/{id}/sources` (liens dans l'ordre de collecte, `source_name` joint). Parcours réel validé (portail factice à deux flux RSS publiant le même AO 27/2026) : 1 fiche, 2 sources, relance idempotente ; les fiches v1 laissées par la Phase 3 n'ont ni `norm_*` ni `embedding` et restent invisibles à la déduplication (à réingérer ou supprimer à la main).
+
 ### Task 4.1 : Normaliseur + empreinte + colonne `embedding`
 
 **Files:**
