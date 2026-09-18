@@ -58,6 +58,8 @@ def test_two_announcements_of_same_tender_give_one_tender_with_two_sources(db, s
         ("https://b/1", "Refonte SI (bis)"),
     }
     assert all(link.source_id == two_sources[1].id for link in tender.source_links)
+    merged_link = next(link for link in tender.source_links if link.url == "https://b/1")
+    assert merged_link.raw["title"] == "REFONTE DU SYSTEME D INFORMATION"  # extraction brute conservée
     assert [d["action"] for d in stats.details] == ["created", "merged"]
     assert stats.details[1]["rule"] == "reference" and stats.details[1]["tender_id"] == str(tender.id)
     assert stats.details[0]["url"] == "https://a/1" and stats.details[0]["tender_id"] == str(tender.id)

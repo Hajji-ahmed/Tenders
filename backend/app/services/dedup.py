@@ -44,6 +44,14 @@ def document_name(url: str) -> str:
     return last[:255] or "document"
 
 
+def same_organization(a: str | None, b: str | None) -> bool:
+    """Deux formes normalisées désignent le même organisme si l'une contient tous les mots de l'autre."""
+    if not a or not b:
+        return False
+    words_a, words_b = set(a.split()), set(b.split())
+    return words_a <= words_b or words_b <= words_a
+
+
 class Deduplicator:
     def __init__(
         self,
@@ -86,13 +94,15 @@ class Deduplicator:
         return link.tender if link is not None else None
 
     def _by_reference(self, n: NormalizedTender) -> Tender | None:
+        """Même référence et même acheteur. Les sources nomment l'acheteur avec plus ou moins de
+        précision (« Commune de Salé » / « Commune de Salé (Maroc), Direction des services
+        techniques ») : un organisme dont tous les mots figurent dans l'autre est le même."""
         if not n.norm_reference or not n.norm_org:
             return None
-        return self.db.scalar(
-            select(Tender)
-            .where(Tender.norm_reference == n.norm_reference, Tender.norm_org == n.norm_org)
-            .order_by(Tender.created_at)
-        )
+        candidates = self.db.scalars(
+            select(Tender).where(Tender.norm_reference == n.norm_reference).order_by(Tender.created_at)
+        ).all()
+        return next((t for t in candidates if same_organization(n.norm_org, t.norm_org)), None)
 
     def _by_fingerprint(self, n: NormalizedTender) -> Tender | None:
         return self.db.scalar(

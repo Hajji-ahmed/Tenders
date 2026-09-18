@@ -108,7 +108,12 @@ class IngestService:
                 stats.record(n.source_url, "skipped", rule="url", tender=match.tender)
             else:
                 merged = self.dedup.merge_into(
-                    match.tender, n, source_id=source_id, title_seen=title_seen, rule=match.rule
+                    match.tender,
+                    n,
+                    source_id=source_id,
+                    title_seen=title_seen,
+                    rule=match.rule,
+                    raw=candidate.model_dump(mode="json"),
                 )
                 merged.urgency = compute_urgency(merged.days_left)  # la fusion peut apporter l'échéance
                 stats.record(n.source_url, "merged", rule=match.rule, tender=merged)

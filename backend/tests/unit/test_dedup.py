@@ -60,6 +60,27 @@ def test_rule_2_reference_and_organization(db):
     assert match is not None and match.tender.id == existing.id and match.rule == "reference"
 
 
+def test_rule_2_tolerates_organization_suffix_but_not_another_organization(db):
+    """Parcours réel : « Commune de Salé (Maroc), Direction des services techniques » désigne le même
+    acheteur que « Commune de Salé » ; la même référence chez un autre acheteur n'est pas un doublon."""
+    existing = _existing(
+        db, _cand(title="Éclairage public", organization="Commune de Salé", reference="27/2026")
+    )
+    n = _cand(
+        title="Avis d'appel d'offres ouvert n° 27/2026",
+        organization="Commune de Salé (Maroc), Direction des services techniques",
+        reference="27/2026",
+        deadline_at=None,
+    )
+    match = _dedup(db).find_duplicate(n)
+    assert match is not None and match.tender.id == existing.id and match.rule == "reference"
+
+    other = _cand(
+        title="Fourniture de véhicules", organization="Commune de Fès", reference="27/2026", deadline_at=None
+    )
+    assert _dedup(db).find_duplicate(other) is None
+
+
 def test_rule_3_fingerprint(db):
     existing = _existing(db, _cand(organization="Ministère X", deadline_at=date(2026, 10, 1)))
     n = _cand(
