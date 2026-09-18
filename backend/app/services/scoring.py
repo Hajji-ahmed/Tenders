@@ -19,6 +19,16 @@ WEIGHTS = {
     "certifications": 5,
     "eligibility": 10,
 }
+LABELS = {
+    "sector": "Secteur",
+    "technologies": "Technologies",
+    "skills": "Compétences",
+    "country": "Pays",
+    "budget": "Budget",
+    "experience": "Expérience",
+    "certifications": "Certifications",
+    "eligibility": "Éligibilité",
+}
 FUZZY_THRESHOLD = 85
 STRENGTH_MIN, WEAKNESS_MAX = 75, 40
 
@@ -35,8 +45,12 @@ class SubScore(BaseModel):
 class ScoreResult(BaseModel):
     total: float
     breakdown: list[SubScore]
-    strengths: list[str]
-    weaknesses: list[str]
+    strengths: list[str]  # clés des critères ≥ 75
+    weaknesses: list[str]  # clés des critères ≤ 40
+
+    def summary(self) -> str:
+        """Une ligne lisible des sous-scores, ex. « Secteur 100/100 · Technologies 60/100 · … »."""
+        return " · ".join(f"{LABELS[s.key]} {s.score:g}/100" for s in self.breakdown)
 
 
 def similar(a: str | None, b: str | None) -> bool:

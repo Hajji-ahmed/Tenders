@@ -12,6 +12,7 @@ from app.core.logging import get_logger
 from app.models import SearchProfile, TenderSource
 from app.services.collect import build_collect_service
 from app.services.ingest import IngestService, IngestStats
+from app.services.jobs import JobService
 from app.services.query_builder import build_queries
 from app.workers.tracking import set_progress, tracked_task
 
@@ -67,4 +68,19 @@ def search_tenders(db, job, *, search_profile_id: str) -> dict:
         entity_id=profile.id,
         payload={"job_id": str(job.id), "sources": len(sources), **totals.as_dict()},
     )
-    return {**totals.as_dict(), "queries": queries, "sources": reports}
+    scoring_jobs = _enqueue_scoring(db, totals)
+    return {**totals.as_dict(), "queries": queries, "sources": reports, "scoring_jobs": scoring_jobs}
+
+
+def _enqueue_scoring(db, totals: IngestStats) -> int:
+    """Un job `calculate_match_score` par fiche créée ou enrichie pendant la passe (une fiche
+    fusionnée depuis plusieurs annonces n'est calculée qu'une fois). `enqueue` commite : la passe
+    d'ingestion est déjà terminée à ce stade."""
+    tender_ids = list(
+        dict.fromkeys(d["tender_id"] for d in totals.details if d["action"] in ("created", "merged"))
+    )
+    for tender_id in tender_ids:
+        JobService.enqueue(
+            db, "calculate_match_score", entity_kind="tender", entity_id=UUID(tender_id), tender_id=tender_id
+        )
+    return len(tender_ids)
