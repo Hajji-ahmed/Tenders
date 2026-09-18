@@ -15,8 +15,9 @@ from app.ai.outputs import TenderCandidate
 from app.core import deps
 from app.core.audit import record_audit
 from app.core.logging import get_logger
-from app.models import SearchProfile, Tender, TenderDocument, TenderSourceLink, TenderStatus
+from app.models import SearchProfile, Tender, TenderDocument, TenderSourceLink, TenderStatus, Urgency
 from app.services.collect import SourceReport
+from app.services.deadlines import compute_urgency
 from app.services.dedup import Deduplicator, document_name, end_of_day
 from app.services.normalize import NormalizedTender, embedding_text, normalize
 
@@ -106,10 +107,11 @@ class IngestService:
             elif match.rule == "url":
                 stats.record(n.source_url, "skipped", rule="url", tender=match.tender)
             else:
-                self.dedup.merge_into(
+                merged = self.dedup.merge_into(
                     match.tender, n, source_id=source_id, title_seen=title_seen, rule=match.rule
                 )
-                stats.record(n.source_url, "merged", rule=match.rule, tender=match.tender)
+                merged.urgency = compute_urgency(merged.days_left)  # la fusion peut apporter l'échéance
+                stats.record(n.source_url, "merged", rule=match.rule, tender=merged)
             self.db.flush()  # la fiche devient visible pour les candidats suivants de la même passe
         return stats
 
@@ -123,6 +125,9 @@ class IngestService:
         title_seen: str | None,
         raw: TenderCandidate,
     ) -> Tender:
+        # RB-002 dès l'ingestion : une échéance passée donne une fiche inactive, sans urgence.
+        days_left = (n.deadline_at - date.today()).days if n.deadline_at else None
+        is_active = days_left is None or days_left >= 0
         tender = Tender(
             title=n.title[:512],
             reference=n.reference,
@@ -145,7 +150,8 @@ class IngestService:
             norm_org=n.norm_org[:255] or None,
             norm_reference=n.norm_reference,
             status=TenderStatus.NOUVEAU,
-            is_active=n.deadline_at is None or n.deadline_at >= date.today(),  # RB-002
+            is_active=is_active,
+            urgency=compute_urgency(days_left) if is_active else Urgency.none,
             search_profile_id=profile.id,
             raw=raw.model_dump(mode="json"),
             extra={

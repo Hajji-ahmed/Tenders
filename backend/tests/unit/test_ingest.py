@@ -6,7 +6,7 @@ from sqlalchemy import func, select
 
 from app.ai.embeddings import FakeEmbeddings
 from app.ai.outputs import TenderCandidate
-from app.models import AuditLog, Tender, TenderSourceLink, TenderStatus
+from app.models import AuditLog, Tender, TenderSourceLink, TenderStatus, Urgency
 from app.services.collect import SourceReport
 from app.services.dedup import Deduplicator
 from app.services.ingest import IngestService
@@ -89,8 +89,43 @@ def test_candidate_with_past_deadline_is_created_inactive(db, search_profile):
 
     assert stats.created == 2
     by_url = {t.source_url: t for t in db.scalars(select(Tender))}
-    assert by_url["https://a/old"].is_active is False
+    assert by_url["https://a/old"].is_active is False and by_url["https://a/old"].urgency == Urgency.none
     assert by_url["https://a/today"].is_active is True  # échéance du jour : encore ouverte
+    assert by_url["https://a/today"].urgency == Urgency.critical
+
+
+def test_urgency_is_set_at_creation_and_when_a_merge_brings_the_deadline(db, search_profile):
+    service = _service(db)
+    stats = service.ingest(
+        _report(
+            _cand("https://a/soon", deadline_at=date.today() + timedelta(days=2)),
+            _cand(
+                "https://a/undated", title="Fourniture de mobilier", organization="Org B", deadline_at=None
+            ),
+        ),
+        search_profile,
+    )
+    assert stats.created == 2
+    by_url = {t.source_url: t for t in db.scalars(select(Tender))}
+    assert by_url["https://a/soon"].urgency == Urgency.critical
+    assert by_url["https://a/undated"].urgency == Urgency.none
+
+    # Une seconde annonce du marché sans échéance (même organisme, même titre) apporte la date.
+    stats = service.ingest(
+        _report(
+            _cand(
+                "https://b/undated",
+                title="Fourniture de mobilier",
+                organization="Org B",
+                deadline_at=date.today() + timedelta(days=10),
+            )
+        ),
+        search_profile,
+    )
+    assert stats.merged == 1
+    db.refresh(by_url["https://a/undated"])
+    assert by_url["https://a/undated"].days_left == 10
+    assert by_url["https://a/undated"].urgency == Urgency.medium
 
 
 def test_invalid_candidates_are_counted_with_a_reason(db, search_profile):
