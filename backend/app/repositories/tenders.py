@@ -1,14 +1,17 @@
-"""Requêtes de liste des opportunités : filtres, tri, pagination (chargement des liens et pièces en
-une requête supplémentaire pour les compteurs)."""
+"""Requêtes de liste des opportunités : filtres, tri (dont par score), pagination — liens, pièces
+et score chargés en requêtes supplémentaires pour les compteurs et `score_total` ; kanban."""
 
 from dataclasses import dataclass
-from datetime import UTC, date, datetime, time
+from datetime import UTC, date, datetime, time, timedelta
 from uuid import UUID
 
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
-from app.models import Tender, TenderSourceLink
+from app.models import Tender, TenderScore, TenderSourceLink, TenderStatus, TenderStatusHistory
+
+CLOSED_STATUSES = (TenderStatus.GAGNE, TenderStatus.PERDU, TenderStatus.ARCHIVE)
+CLOSED_VISIBLE_DAYS = 90  # une fiche close reste sur le kanban 90 jours après son dernier changement
 
 
 @dataclass
@@ -33,8 +36,18 @@ def _order(sort: str):
             return (Tender.deadline_at.asc().nulls_last(), Tender.created_at.desc())
         case "-deadline":
             return (Tender.deadline_at.desc().nulls_last(), Tender.created_at.desc())
-        case _:  # "-created" et, jusqu'à la Phase 5, "score" / "-score"
+        case "score":
+            return (TenderScore.total.asc().nulls_last(), Tender.created_at.desc())
+        case "-score":
+            return (TenderScore.total.desc().nulls_last(), Tender.created_at.desc())
+        case _:  # "-created"
             return (Tender.created_at.desc(), Tender.title)
+
+
+def _with_relations(stmt):
+    return stmt.options(
+        selectinload(Tender.source_links), selectinload(Tender.documents), selectinload(Tender.score)
+    )
 
 
 def search(db: Session, p: TenderListParams) -> tuple[list[Tender], int]:
@@ -57,11 +70,10 @@ def search(db: Session, p: TenderListParams) -> tuple[list[Tender], int]:
         stmt = stmt.where(Tender.deadline_at <= limit)
 
     total = db.scalar(select(func.count()).select_from(stmt.subquery())) or 0
+    if p.sort in ("score", "-score"):
+        stmt = stmt.outerjoin(TenderScore, TenderScore.tender_id == Tender.id)
     rows = db.scalars(
-        stmt.options(selectinload(Tender.source_links), selectinload(Tender.documents))
-        .order_by(*_order(p.sort))
-        .offset((p.page - 1) * p.size)
-        .limit(p.size)
+        _with_relations(stmt).order_by(*_order(p.sort)).offset((p.page - 1) * p.size).limit(p.size)
     ).all()
     return list(rows), total
 
@@ -73,6 +85,7 @@ def get_detail(db: Session, tender_id: UUID) -> Tender | None:
         .options(
             selectinload(Tender.source_links).selectinload(TenderSourceLink.source),
             selectinload(Tender.documents),
+            selectinload(Tender.score),
         )
     )
 
@@ -89,3 +102,39 @@ def list_source_links(db: Session, tender_id: UUID) -> list[TenderSourceLink] | 
             .order_by(TenderSourceLink.collected_at, TenderSourceLink.url)
         )
     )
+
+
+def list_status_history(db: Session, tender_id: UUID) -> list[TenderStatusHistory]:
+    return list(
+        db.scalars(
+            select(TenderStatusHistory)
+            .where(TenderStatusHistory.tender_id == tender_id)
+            .order_by(TenderStatusHistory.changed_at, TenderStatusHistory.id)
+        )
+    )
+
+
+def kanban(db: Session, *, now: datetime | None = None) -> dict[TenderStatus, list[Tender]]:
+    """Fiches actives par statut, plus les fiches closes (gagné / perdu / archivé) des 90 derniers
+    jours ; dans chaque colonne, meilleur score d'abord puis échéance la plus proche."""
+    now = now or datetime.now(UTC)
+    since = now - timedelta(days=CLOSED_VISIBLE_DAYS)
+    stmt = (
+        _with_relations(select(Tender))
+        .outerjoin(TenderScore, TenderScore.tender_id == Tender.id)
+        .where(
+            or_(
+                Tender.is_active.is_(True) & Tender.status.not_in(CLOSED_STATUSES),
+                Tender.status.in_(CLOSED_STATUSES) & (Tender.updated_at >= since),
+            )
+        )
+        .order_by(
+            TenderScore.total.desc().nulls_last(),
+            Tender.deadline_at.asc().nulls_last(),
+            Tender.created_at.desc(),
+        )
+    )
+    columns: dict[TenderStatus, list[Tender]] = {status: [] for status in TenderStatus}
+    for tender in db.scalars(stmt):
+        columns[TenderStatus(tender.status)].append(tender)
+    return columns

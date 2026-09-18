@@ -184,6 +184,10 @@ class Tender(UUIDMixin, TimestampMixin, Base):
     def document_count(self) -> int:
         return len(self.documents)
 
+    @property
+    def score_total(self) -> float | None:
+        return float(self.score.total) if self.score is not None else None
+
 
 class TenderSourceLink(UUIDMixin, Base):
     """Provenance d'une opportunité : une ligne par URL collectée. L'unicité de `url` empêche de

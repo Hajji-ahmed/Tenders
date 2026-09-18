@@ -8,6 +8,7 @@ from uuid import UUID
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 from app.ai.outputs import TenderCandidate
+from app.models.scoring import DecisionKind
 from app.models.tender import DownloadStatus, SourceKind, TenderStatus, Urgency
 from app.schemas.company import _clean_tags
 
@@ -228,10 +229,69 @@ class TenderOut(_Out):
     days_left: int | None
     source_count: int
     document_count: int
-    score_total: float | None = None  # jointure `tender_scores` en Phase 5
+    score_total: float | None = None  # propriété `Tender.score_total` (relation `score` chargée en liste)
 
 
 class TenderDetailOut(TenderOut):
     extra: dict
     source_links: list[TenderSourceLinkOut]
     documents: list[TenderDocumentOut]
+
+
+# --- Score, décision, statut ---------------------------------------------------------------------
+
+
+class SubScoreOut(BaseModel):
+    key: str
+    score: float
+    weight: int
+    reason: str
+    matched: list[str] = []
+    missing: list[str] = []
+
+
+class TenderScoreOut(BaseModel):
+    id: UUID
+    tender_id: UUID
+    total: float
+    breakdown: list[SubScoreOut]
+    strengths: list[str]
+    weaknesses: list[str]
+    justification: str
+    ai_adjustment: int
+    model: str | None
+    prompt_version: str | None
+    scoring_version: str
+    computed_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class DecisionIn(BaseModel):
+    decision: DecisionKind
+    reason: str | None = Field(None, max_length=2000)
+
+
+class StatusIn(BaseModel):
+    status: TenderStatus
+    comment: str | None = Field(None, max_length=2000)
+
+
+class StatusHistoryOut(BaseModel):
+    id: UUID
+    from_status: TenderStatus | None
+    to_status: TenderStatus
+    comment: str | None
+    changed_by: str | None
+    changed_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class KanbanColumnOut(BaseModel):
+    status: TenderStatus
+    items: list[TenderOut]
+
+
+class KanbanOut(BaseModel):
+    columns: list[KanbanColumnOut]
