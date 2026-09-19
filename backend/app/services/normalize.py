@@ -15,6 +15,28 @@ _PUNCT = re.compile(r"[^\w\s]", re.UNICODE)
 _SPACES = re.compile(r"\s+")
 _REF_JUNK = re.compile(r"[\s\-_./\\]+")  # « AO 12/2026 » et « AO-12-2026 » = même référence
 
+# Longueurs des colonnes `tenders` : l'extracteur peut rendre des libellés interminables (liste de
+# secteurs d'un agrégateur…) ; sans borne, l'insertion échoue et toute la recherche avec.
+LIMITS = {
+    "title": 512,
+    "organization": 255,
+    "organization_type": 64,
+    "reference": 128,
+    "region": 128,
+    "sector": 128,
+    "market_type": 64,
+    "norm_title": 512,
+    "norm_org": 255,
+    "norm_reference": 128,
+}
+
+
+def clip(value: str | None, limit: int) -> str | None:
+    """Tronque proprement (sans espace ni séparateur final) ; None reste None."""
+    if value is None or len(value) <= limit:
+        return value
+    return value[:limit].rstrip(" ;,-–—/|") or value[:limit]
+
 
 def strip_accents(text: str) -> str:
     return "".join(ch for ch in unicodedata.normalize("NFKD", text) if not unicodedata.combining(ch))
@@ -83,23 +105,25 @@ def fingerprint(norm_org: str, norm_title: str, deadline) -> str:
 
 
 def normalize(c: TenderCandidate) -> NormalizedTender:
-    title = squeeze(c.title)
-    organization = squeeze(c.organization) or None
+    title = clip(squeeze(c.title), LIMITS["title"]) or ""
+    organization = clip(squeeze(c.organization) or None, LIMITS["organization"])
     n_title, n_org = norm_text(title), norm_text(organization)
     data = c.model_dump()
     data.update(
         title=title,
         organization=organization,
-        reference=squeeze(c.reference) or None,
+        organization_type=clip(squeeze(c.organization_type) or None, LIMITS["organization_type"]),
+        reference=clip(squeeze(c.reference) or None, LIMITS["reference"]),
         country=country_code(c.country),
         currency=currency_code(c.currency),
         description=squeeze(c.description),
-        sector=squeeze(c.sector) or None,
-        region=squeeze(c.region) or None,
+        sector=clip(squeeze(c.sector) or None, LIMITS["sector"]),
+        region=clip(squeeze(c.region) or None, LIMITS["region"]),
+        market_type=clip(squeeze(c.market_type) or None, LIMITS["market_type"]),
         fingerprint=fingerprint(n_org, n_title, c.deadline_at),
-        norm_title=n_title,
-        norm_org=n_org,
-        norm_reference=norm_reference(c.reference),
+        norm_title=clip(n_title, LIMITS["norm_title"]),
+        norm_org=clip(n_org, LIMITS["norm_org"]),
+        norm_reference=clip(norm_reference(c.reference), LIMITS["norm_reference"]),
     )
     return NormalizedTender(**data)
 

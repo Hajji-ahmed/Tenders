@@ -130,6 +130,17 @@ def test_urgency_is_set_at_creation_and_when_a_merge_brings_the_deadline(db, sea
     assert by_url["https://a/undated"].urgency == Urgency.medium
 
 
+def test_overlong_extracted_fields_do_not_break_the_ingestion(db, search_profile):
+    sectors = "; ".join(f"Secteur {i} — libellé long de l'agrégateur" for i in range(8))  # > 128 caractères
+    stats = _service(db).ingest(
+        _report(_cand("https://a/long", sector=sectors, organization="O" * 300, reference="R" * 200)),
+        search_profile,
+    )
+    assert stats.created == 1
+    tender = db.scalar(select(Tender))
+    assert len(tender.sector) <= 128 and len(tender.organization) == 255 and len(tender.reference) == 128
+
+
 def test_invalid_candidates_are_counted_with_a_reason(db, search_profile):
     report = _report(
         _cand("https://x/1", is_tender=False),
