@@ -1,6 +1,7 @@
 # Importer ici CHAQUE modèle pour qu'Alembic les voie lors de l'autogénération.
 from app.models.audit import AuditLog
 from app.models.base import Base
+from app.models.chunk import ChunkOwnerKind, DocumentChunk
 from app.models.company import (
     Certification,
     CertificationCategory,
@@ -42,11 +43,13 @@ __all__ = [
     "Base",
     "Certification",
     "CertificationCategory",
+    "ChunkOwnerKind",
     "Company",
     "CompanyDocument",
     "CompanyProfile",
     "DecisionKind",
     "DocumentCategory",
+    "DocumentChunk",
     "DocumentKind",
     "DocumentStatus",
     "DocumentVersion",
