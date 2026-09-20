@@ -114,9 +114,13 @@ def test_analyze_job_chains_download_index_and_analysis(
         "index_failed": 0,
         "criteria": 3,
         "requirements": 1,
+        "eligibility_ratio": 0.0,
+        "mandatory_unmet": ["ADM-001"],
     }
     assert job.progress == 100 and "Analyse terminée" in (job.message or "") and "1 exigence" in job.message
     assert [r.code for r in tender.requirements] == ["ADM-001"]
+    # l'éligibilité est évaluée dans la foulée : pas d'attestation fiscale au profil ⇒ info manquante
+    assert tender.requirements[0].status == "INFO_MANQUANTE" and tender.extra["eligibility"]["ratio"] == 0.0
     assert tender.requirements[0].source_document_id == next(
         d.id for d in tender.documents if d.name == "dce.pdf"
     )

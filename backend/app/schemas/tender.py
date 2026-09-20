@@ -362,6 +362,14 @@ class RequirementUpdate(BaseModel):
     priority: Priority | None = None
 
 
+class EligibilitySummaryOut(BaseModel):
+    total: int
+    by_status: dict[str, int]
+    mandatory_unmet: list[str]
+    ratio: float
+    evaluated_at: str | None = None
+
+
 class TenderAnalysisOut(BaseModel):
     id: UUID
     tender_id: UUID

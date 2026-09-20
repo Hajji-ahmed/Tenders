@@ -1,6 +1,7 @@
-"""Exigences d'un dossier : liste filtrée (`GET /tenders/{id}/requirements`) et mise à jour manuelle
-(`PATCH /requirements/{id}` — statut, justification, obligatoire, priorité), auditée et marquée
-`manual_status` pour survivre aux ré-extractions."""
+"""Exigences d'un dossier : liste filtrée (`GET /tenders/{id}/requirements`), mise à jour manuelle
+(`PATCH /requirements/{id}` — statut, justification, obligatoire, priorité — auditée et marquée
+`manual_status` pour survivre aux ré-extractions), évaluation d'éligibilité (`POST` = job,
+`GET` = dernier résumé)."""
 
 from uuid import UUID
 
@@ -13,9 +14,34 @@ from app.core.db import get_db
 from app.core.deps import get_current_user
 from app.core.errors import NotFoundError
 from app.models import RequirementCategory, RequirementStatus, Tender, TenderRequirement, User
-from app.schemas.tender import RequirementOut, RequirementUpdate
+from app.schemas.job import JobOut
+from app.schemas.tender import EligibilitySummaryOut, RequirementOut, RequirementUpdate
+from app.services.jobs import JobService
+
+ELIGIBILITY_JOB = "evaluate_eligibility"
 
 router = APIRouter(tags=["requirements"], dependencies=[Depends(get_current_user)])
+
+
+@router.post("/tenders/{tender_id}/eligibility", response_model=JobOut, status_code=202)
+def launch_eligibility(tender_id: UUID, db: Session = Depends(get_db)):
+    tender = db.get(Tender, tender_id)
+    if tender is None:
+        raise NotFoundError("Opportunité introuvable")
+    return JobService.enqueue(
+        db, ELIGIBILITY_JOB, entity_kind="tender", entity_id=tender.id, tender_id=str(tender.id)
+    )
+
+
+@router.get("/tenders/{tender_id}/eligibility", response_model=EligibilitySummaryOut)
+def get_eligibility(tender_id: UUID, db: Session = Depends(get_db)):
+    tender = db.get(Tender, tender_id)
+    if tender is None:
+        raise NotFoundError("Opportunité introuvable")
+    summary = (tender.extra or {}).get("eligibility")
+    if not summary:
+        raise NotFoundError("Éligibilité non évaluée", code="eligibility_missing")
+    return summary
 
 
 @router.get("/tenders/{tender_id}/requirements", response_model=list[RequirementOut])
