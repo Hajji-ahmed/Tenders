@@ -5,6 +5,8 @@ from datetime import date
 
 from pydantic import BaseModel, Field
 
+from app.models.requirement import Priority, RequirementCategory
+
 
 class TenderCandidate(BaseModel):
     """Ce que l'extracteur lit dans une page web : un appel d'offres (ou non) et ses champs.
@@ -71,6 +73,25 @@ class TenderAnalysisOutput(BaseModel):
         default_factory=list, description="Conditions d'admission / exclusion"
     )
     summary: str = Field(description="Résumé en 5 à 8 phrases, en français")
+
+
+class RequirementOutput(BaseModel):
+    """Une exigence lue dans une pièce du dossier, avec sa source (RB : traçabilité IA)."""
+
+    category: RequirementCategory
+    description: str = Field(description="L'exigence en une phrase précise, chiffres et normes compris")
+    is_mandatory: bool = Field(description="true si l'absence entraîne le rejet de l'offre")
+    evidence_required: str | None = Field(
+        None, description="Pièce ou preuve attendue (attestation, CV, référence…)"
+    )
+    priority: Priority
+    source_document: str | None = Field(None, description="Nom du fichier tel que dans le marqueur")
+    source_page: int | None = None
+    source_excerpt: str | None = Field(None, description="Citation courte (≤ 200 caractères) du passage")
+
+
+class RequirementsOutput(BaseModel):
+    requirements: list[RequirementOutput] = Field(default_factory=list)
 
 
 class ScoreAssessment(BaseModel):

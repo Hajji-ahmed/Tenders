@@ -25,6 +25,13 @@ from app.models.document import (
     ExtractionStatus,
 )
 from app.models.job import Job, JobStatus
+from app.models.requirement import (
+    CODE_PREFIX,
+    Priority,
+    RequirementCategory,
+    RequirementStatus,
+    TenderRequirement,
+)
 from app.models.scoring import DecisionKind, TenderDecision, TenderScore, TenderStatusHistory
 from app.models.tender import (
     DownloadStatus,
@@ -40,6 +47,7 @@ from app.models.tender import (
 from app.models.user import User
 
 __all__ = [
+    "CODE_PREFIX",
     "AuditLog",
     "Base",
     "Certification",
@@ -59,8 +67,11 @@ __all__ = [
     "ExtractionStatus",
     "Job",
     "JobStatus",
+    "Priority",
     "Project",
     "Reference",
+    "RequirementCategory",
+    "RequirementStatus",
     "SearchProfile",
     "Skill",
     "SkillCategory",
@@ -72,6 +83,7 @@ __all__ = [
     "TenderCriterion",
     "TenderDecision",
     "TenderDocument",
+    "TenderRequirement",
     "TenderScore",
     "TenderSource",
     "TenderSourceLink",

@@ -7,6 +7,7 @@ from app.api.v1 import (
     documents,
     health,
     jobs,
+    requirements,
     scoring,
     search_profiles,
     searches,
@@ -27,4 +28,5 @@ api_router.include_router(searches.router)
 api_router.include_router(scoring.router)  # avant `tenders` : /tenders/kanban ≠ /tenders/{tender_id}
 api_router.include_router(tender_documents.router)
 api_router.include_router(analysis.router)
+api_router.include_router(requirements.router)
 api_router.include_router(tenders.router)

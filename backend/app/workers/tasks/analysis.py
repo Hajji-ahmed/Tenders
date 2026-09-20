@@ -1,6 +1,6 @@
 """Job `analyze_tender` : la chaîne complète du dossier — télécharger les pièces manquantes (échecs
-tolérés), indexer celles qui ne le sont pas (échecs tolérés), puis analyser. Progression 0 / 25 /
-50 / 75 / 100. L'extraction des exigences (Phase 7) se branchera en fin de chaîne."""
+tolérés), indexer celles qui ne le sont pas (échecs tolérés), analyser, puis extraire les exigences
+(une pièce en échec est ignorée). Progression 0 / 25 / 50 / 75 / 100."""
 
 from uuid import UUID
 
@@ -8,6 +8,7 @@ from app.core import deps
 from app.models import DownloadStatus, ExtractionStatus, Tender
 from app.services.analysis import AnalysisService
 from app.services.indexing import IndexingService
+from app.services.requirements import RequirementsService
 from app.services.tender_documents import TenderDocumentService
 from app.workers.tracking import set_progress, tracked_task
 
@@ -49,10 +50,14 @@ def analyze_tender(db, job, *, tender_id: str) -> dict:
     analysis = AnalysisService(db).analyze(tender)  # AppError « Aucun document exploitable » ⇒ job failed
     db.commit()
 
-    set_progress(db, job, 75, "Extraction des exigences")  # branchée en Phase 7
-    criteria, dates = len(tender.criteria), len(analysis.key_dates)
+    set_progress(db, job, 75, "Extraction des exigences")
+    requirements = RequirementsService(db).extract(tender)
+    db.commit()
+
+    criteria, dates, reqs = len(tender.criteria), len(analysis.key_dates), len(requirements)
     summary = f"Analyse terminée : {criteria} critère{'s' if criteria > 1 else ''}, "
-    summary += f"{dates} date{'s' if dates > 1 else ''} clé{'s' if dates > 1 else ''}"
+    summary += f"{dates} date{'s' if dates > 1 else ''} clé{'s' if dates > 1 else ''}, "
+    summary += f"{reqs} exigence{'s' if reqs > 1 else ''}"
     set_progress(db, job, 100, summary)
     return {
         "downloaded": downloaded,
@@ -60,4 +65,5 @@ def analyze_tender(db, job, *, tender_id: str) -> dict:
         "indexed": indexed,
         "index_failed": index_failed,
         "criteria": criteria,
+        "requirements": reqs,
     }
