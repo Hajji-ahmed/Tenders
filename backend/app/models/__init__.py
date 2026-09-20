@@ -1,4 +1,5 @@
 # Importer ici CHAQUE modèle pour qu'Alembic les voie lors de l'autogénération.
+from app.models.analysis import TenderAnalysis, TenderCriterion
 from app.models.audit import AuditLog
 from app.models.base import Base
 from app.models.chunk import ChunkOwnerKind, DocumentChunk
@@ -67,6 +68,8 @@ __all__ = [
     "Technology",
     "TechnologyCategory",
     "Tender",
+    "TenderAnalysis",
+    "TenderCriterion",
     "TenderDecision",
     "TenderDocument",
     "TenderScore",

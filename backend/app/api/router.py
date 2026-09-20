@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from app.api.v1 import (
+    analysis,
     auth,
     company,
     documents,
@@ -25,4 +26,5 @@ api_router.include_router(sources.router)
 api_router.include_router(searches.router)
 api_router.include_router(scoring.router)  # avant `tenders` : /tenders/kanban ≠ /tenders/{tender_id}
 api_router.include_router(tender_documents.router)
+api_router.include_router(analysis.router)
 api_router.include_router(tenders.router)
