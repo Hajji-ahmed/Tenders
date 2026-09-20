@@ -1,5 +1,6 @@
 """Schémas de la recherche et des opportunités : profils, sources, lancement, fiches `tenders`."""
 
+import datetime as dt
 from datetime import date, datetime
 from decimal import Decimal
 from typing import Annotated, Literal
@@ -194,6 +195,7 @@ class TenderSourceLinkOut(BaseModel):
 
 
 class TenderDocumentOut(_Out):
+    tender_id: UUID
     name: str
     source_url: str | None
     mime_type: str | None
@@ -295,3 +297,52 @@ class KanbanColumnOut(BaseModel):
 
 class KanbanOut(BaseModel):
     columns: list[KanbanColumnOut]
+
+
+# --- Analyse du dossier --------------------------------------------------------------------------
+
+
+class DatedItemOut(BaseModel):
+    label: str
+    # `dt.date` : l'annotation est évaluée après l'affectation, le nom nu résoudrait vers la valeur.
+    date: dt.date | None = None
+    source_page: int | None = None
+
+
+class RequestedDocumentOut(BaseModel):
+    name: str
+    mandatory: bool
+    source_page: int | None = None
+
+
+class CriterionOut(BaseModel):
+    id: UUID
+    position: int
+    name: str
+    weight: float | None
+    description: str | None
+    source_page: int | None
+
+    model_config = {"from_attributes": True}
+
+
+class TenderAnalysisOut(BaseModel):
+    id: UUID
+    tender_id: UUID
+    object: str
+    organization: str | None
+    reference: str | None
+    budget: str | None
+    duration: str | None
+    location: str | None
+    key_dates: list[DatedItemOut]
+    deliverables: list[str]
+    requested_documents: list[RequestedDocumentOut]
+    eligibility_conditions: list[str]
+    summary: str
+    model: str | None
+    prompt_version: str | None
+    analyzed_at: datetime
+    criteria: list[CriterionOut] = []
+
+    model_config = {"from_attributes": True}

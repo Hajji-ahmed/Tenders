@@ -20,6 +20,28 @@ def test_normalize_country_and_reference():
     assert n.norm_title == "refonte du si" and n.norm_org == "ministere x"
 
 
+def test_text_fields_are_clipped_to_the_column_lengths():
+    """Constaté en réel (j360) : l'extracteur rend un secteur de 190 caractères — sans borne, l'insertion
+    échouait (varchar(128)) et toute la recherche avec."""
+    long = "Mobilier urbain, signalisation ; Électricité, domotique ; Éclairage public ; " * 5
+    n = normalize(
+        _cand(
+            title="T" * 600,
+            organization="O" * 300,
+            organization_type="type " * 20,
+            reference="R" * 200,
+            region="r" * 200,
+            sector=long,
+            market_type="m" * 100,
+        )
+    )
+    assert len(n.title) == 512 and len(n.organization) == 255 and len(n.organization_type) == 64
+    assert len(n.reference) == 128 and len(n.region) == 128 and 100 < len(n.sector) <= 128
+    assert len(n.market_type) == 64
+    assert len(n.norm_title) <= 512 and len(n.norm_org) <= 255 and len(n.norm_reference) <= 128
+    assert not n.sector.endswith(" ")  # coupe propre, sans espace final
+
+
 def test_fingerprint_stable_across_case_accents_and_spacing():
     a = normalize(_cand(title="Réfonte du  SI", organization="Ministère X", deadline_at=date(2026, 10, 1)))
     b = normalize(_cand(title="REFONTE DU SI !", organization="ministere x", deadline_at=date(2026, 10, 1)))

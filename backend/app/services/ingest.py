@@ -18,8 +18,8 @@ from app.core.logging import get_logger
 from app.models import SearchProfile, Tender, TenderDocument, TenderSourceLink, TenderStatus, Urgency
 from app.services.collect import SourceReport
 from app.services.deadlines import compute_urgency
-from app.services.dedup import Deduplicator, document_name, end_of_day
-from app.services.normalize import NormalizedTender, embedding_text, normalize
+from app.services.dedup import Deduplicator, end_of_day
+from app.services.normalize import NormalizedTender, document_name, embedding_text, normalize
 
 log = get_logger("ingest")
 

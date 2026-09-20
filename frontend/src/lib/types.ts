@@ -290,6 +290,7 @@ export type TenderSourceLink = {
 
 export type TenderDocumentRef = Timestamps & {
   id: string;
+  tender_id: string;
   name: string;
   source_url: string | null;
   mime_type: string | null;
@@ -355,3 +356,36 @@ export type StatusHistoryEntry = {
 
 export type KanbanColumn = { status: TenderStatus; items: Tender[] };
 export type Kanban = { columns: KanbanColumn[] };
+
+// --- Analyse du dossier (Phase 6) ---
+
+export type KeyDate = { label: string; date: string | null; source_page: number | null };
+export type RequestedDocumentItem = { name: string; mandatory: boolean; source_page: number | null };
+export type AnalysisCriterion = {
+  id: string;
+  position: number;
+  name: string;
+  weight: number | null;
+  description: string | null;
+  source_page: number | null;
+};
+
+export type TenderAnalysis = {
+  id: string;
+  tender_id: string;
+  object: string;
+  organization: string | null;
+  reference: string | null;
+  budget: string | null;
+  duration: string | null;
+  location: string | null;
+  key_dates: KeyDate[];
+  deliverables: string[];
+  requested_documents: RequestedDocumentItem[];
+  eligibility_conditions: string[];
+  summary: string;
+  model: string | null;
+  prompt_version: string | null;
+  analyzed_at: string;
+  criteria: AnalysisCriterion[];
+};

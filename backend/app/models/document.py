@@ -62,6 +62,7 @@ class CompanyDocument(UUIDMixin, TimestampMixin, Base):
     tags: Mapped[list[str]] = mapped_column(ARRAY(String), default=list)
     extraction_status: Mapped[ExtractionStatus] = mapped_column(String(16), default=ExtractionStatus.pending)
     extracted_text: Mapped[str | None] = mapped_column(Text)
+    page_count: Mapped[int | None] = mapped_column(Integer)  # renseigné par l'indexation (Phase 6)
 
     @property
     def is_expired(self) -> bool:

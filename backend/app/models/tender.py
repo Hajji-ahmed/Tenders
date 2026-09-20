@@ -15,6 +15,7 @@ from app.models.base import Base, TimestampMixin, UUIDMixin
 from app.models.document import ExtractionStatus
 
 if TYPE_CHECKING:
+    from app.models.analysis import TenderAnalysis, TenderCriterion
     from app.models.scoring import TenderDecision, TenderScore, TenderStatusHistory
 
 
@@ -169,6 +170,16 @@ class Tender(UUIDMixin, TimestampMixin, Base):
         cascade="all, delete-orphan",
         passive_deletes=True,
         order_by="TenderStatusHistory.changed_at",
+    )
+    # Phase 6 (models/analysis) : une analyse du dossier et ses critères d'évaluation.
+    analysis: Mapped["TenderAnalysis | None"] = relationship(
+        back_populates="tender", cascade="all, delete-orphan", passive_deletes=True, uselist=False
+    )
+    criteria: Mapped[list["TenderCriterion"]] = relationship(
+        back_populates="tender",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        order_by="TenderCriterion.position",
     )
 
     @property

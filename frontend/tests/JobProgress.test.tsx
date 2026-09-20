@@ -47,6 +47,22 @@ describe("JobProgress", () => {
     expect(screen.getByText("3 nouvelles opportunités · 2 annonces fusionnées · 1 déjà connue")).toBeInTheDocument();
   });
 
+  it("summarises document, analysis and scoring jobs by their own result", () => {
+    state.job = { ...base, type: "download_tender_documents", status: "done", progress: 100, result: { done: 2, failed: 1 } };
+    const { unmount } = render(<JobProgress jobId="j1" />);
+    expect(screen.getByText("2 pièces téléchargées · 1 en échec")).toBeInTheDocument();
+    unmount();
+
+    state.job = { ...base, type: "analyze_tender", status: "done", progress: 100, message: "Analyse terminée : 4 critères, 4 dates clés", result: { indexed: 1, index_failed: 3, criteria: 4 } };
+    const second = render(<JobProgress jobId="j1" />);
+    expect(screen.getByText("Analyse terminée : 4 critères, 4 dates clés")).toBeInTheDocument();
+    second.unmount();
+
+    state.job = { ...base, type: "calculate_match_score", status: "done", progress: 100, result: { total: 72.5, adjustment: 5 } };
+    render(<JobProgress jobId="j1" />);
+    expect(screen.getByText("Score 72.5 / 100")).toBeInTheDocument();
+  });
+
   it("shows the error message when failed", () => {
     state.job = { ...base, status: "failed", error: "ValueError: Profil de recherche introuvable" };
     render(<JobProgress jobId="j1" />);
