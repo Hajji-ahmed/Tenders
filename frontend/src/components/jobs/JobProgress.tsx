@@ -15,15 +15,31 @@ type Props = {
   onSettled?: (job: Job) => void;
 };
 
-function summary(result: Job["result"]): string | null {
-  if (!result) return null;
-  const created = Number(result.created ?? 0);
-  const merged = Number(result.merged ?? 0);
-  const skipped = Number(result.skipped ?? 0);
-  const parts = [`${created} nouvelle${created > 1 ? "s" : ""} opportunité${created > 1 ? "s" : ""}`];
-  if (merged) parts.push(`${merged} annonce${merged > 1 ? "s" : ""} fusionnée${merged > 1 ? "s" : ""}`);
-  if (skipped) parts.push(`${skipped} déjà connue${skipped > 1 ? "s" : ""}`);
-  return parts.join(" · ");
+const plural = (n: number, one: string, many: string) => `${n} ${n > 1 ? many : one}`;
+
+/** Une ligne de bilan par type de job ; à défaut, le dernier message de progression. */
+function summary(job: Job): string | null {
+  const r = job.result;
+  switch (job.type) {
+    case "search_tenders": {
+      if (!r) return job.message;
+      const created = Number(r.created ?? 0);
+      const parts = [plural(created, "nouvelle opportunité", "nouvelles opportunités")];
+      if (Number(r.merged ?? 0)) parts.push(plural(Number(r.merged), "annonce fusionnée", "annonces fusionnées"));
+      if (Number(r.skipped ?? 0)) parts.push(plural(Number(r.skipped), "déjà connue", "déjà connues"));
+      return parts.join(" · ");
+    }
+    case "download_tender_documents": {
+      if (!r) return job.message;
+      const parts = [plural(Number(r.done ?? 0), "pièce téléchargée", "pièces téléchargées")];
+      if (Number(r.failed ?? 0)) parts.push(`${r.failed} en échec`);
+      return parts.join(" · ");
+    }
+    case "calculate_match_score":
+      return r && r.total !== undefined ? `Score ${r.total} / 100` : job.message;
+    default:
+      return job.message;
+  }
 }
 
 /** Suivi en direct d'un job (sondage toutes les 2 s) : barre, message, résultat ou erreur. */
@@ -63,7 +79,7 @@ export function JobProgress({ jobId, className, onSettled }: Props) {
   }
 
   if (data.status === "done") {
-    const text = summary(data.result);
+    const text = summary(data);
     return (
       <div className={cn("rounded-lg border border-brand-green/30 bg-brand-green-tint px-3 py-2 text-sm", className)}>
         <p className="flex items-center gap-2 font-semibold text-brand-green-dark">

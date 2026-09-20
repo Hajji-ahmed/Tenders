@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { JobProgress } from "@/components/jobs/JobProgress";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { DecisionButtons } from "@/components/tenders/DecisionButtons";
+import { DossierSection } from "@/components/tenders/DossierSection";
 import { ScoreBreakdown } from "@/components/tenders/ScoreBreakdown";
 import { ScoreCard } from "@/components/tenders/ScoreCard";
 import { StatusTimeline } from "@/components/tenders/StatusTimeline";
@@ -263,6 +264,7 @@ function TenderPageInner() {
               <DecisionButtons status={t.status} onDecide={onDecide} />
             </CardContent>
           </Card>
+          <DossierSection tenderId={id} onTenderChanged={() => void tender.refetch()} />
         </TabsContent>
         <TabsContent value="requirements" className="pt-4"><Placeholder label="Analyse des exigences" /></TabsContent>
         <TabsContent value="questions" className="pt-4"><Placeholder label="Questions à l'acheteur" /></TabsContent>

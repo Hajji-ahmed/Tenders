@@ -102,6 +102,7 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
                 <li key={href}>
                   <Link
                     href={href}
+                    prefetch={false} // plusieurs pages du menu n'existent pas encore : leur préchargement répétait des 404
                     onClick={onNavigate}
                     aria-current={active ? "page" : undefined}
                     className={cn(
