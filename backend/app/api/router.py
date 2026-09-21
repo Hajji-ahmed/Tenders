@@ -7,6 +7,7 @@ from app.api.v1 import (
     documents,
     health,
     jobs,
+    questions,
     requirements,
     scoring,
     search_profiles,
@@ -29,4 +30,5 @@ api_router.include_router(scoring.router)  # avant `tenders` : /tenders/kanban â
 api_router.include_router(tender_documents.router)
 api_router.include_router(analysis.router)
 api_router.include_router(requirements.router)
+api_router.include_router(questions.router)
 api_router.include_router(tenders.router)

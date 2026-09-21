@@ -1,6 +1,7 @@
 """Job `analyze_tender` : la chaîne complète du dossier — télécharger les pièces manquantes (échecs
 tolérés), indexer celles qui ne le sont pas (échecs tolérés), analyser, extraire les exigences (une
-pièce en échec est ignorée), puis évaluer l'éligibilité. Progression 0 / 25 / 50 / 75 / 90 / 100."""
+pièce en échec est ignorée), évaluer l'éligibilité, puis formuler les questions ciblées.
+Progression 0 / 25 / 50 / 75 / 90 / 95 / 100."""
 
 from uuid import UUID
 
@@ -10,6 +11,7 @@ from app.services.analysis import AnalysisService
 from app.services.company import CompanyService
 from app.services.eligibility import EligibilityEngine
 from app.services.indexing import IndexingService
+from app.services.questions import QuestionService
 from app.services.requirements import RequirementsService
 from app.services.tender_documents import TenderDocumentService
 from app.workers.tracking import set_progress, tracked_task
@@ -57,13 +59,21 @@ def analyze_tender(db, job, *, tender_id: str) -> dict:
     db.commit()
 
     set_progress(db, job, 90, "Évaluation de l'éligibilité")
-    eligibility = EligibilityEngine(db, CompanyService.get_or_create(db)).evaluate(tender)
+    engine = EligibilityEngine(db, CompanyService.get_or_create(db))
+    eligibility = engine.evaluate(tender, QuestionService.answers_by_requirement(tender))
+    db.commit()
+
+    set_progress(db, job, 95, "Formulation des questions")
+    QuestionService(db).generate(tender)
+    open_questions = QuestionService.open_count(tender)
     db.commit()
 
     criteria, dates, reqs = len(tender.criteria), len(analysis.key_dates), len(requirements)
     summary = f"Analyse terminée : {criteria} critère{'s' if criteria > 1 else ''}, "
     summary += f"{dates} date{'s' if dates > 1 else ''} clé{'s' if dates > 1 else ''}, "
     summary += f"{reqs} exigence{'s' if reqs > 1 else ''} — éligibilité {round(eligibility.ratio * 100)} %"
+    if open_questions:
+        summary += f", {open_questions} question{'s' if open_questions > 1 else ''} à traiter"
     set_progress(db, job, 100, summary)
     return {
         "downloaded": downloaded,
@@ -74,4 +84,5 @@ def analyze_tender(db, job, *, tender_id: str) -> dict:
         "requirements": reqs,
         "eligibility_ratio": eligibility.ratio,
         "mandatory_unmet": eligibility.mandatory_unmet,
+        "questions": open_questions,
     }

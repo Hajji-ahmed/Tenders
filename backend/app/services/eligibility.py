@@ -6,7 +6,7 @@ jugements (les statuts saisis à la main sont conservés), résume (ratio, oblig
 satisfaites — RB-003), relance le score avec le ratio et signale chaque obligatoire non satisfaite."""
 
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Mapping, Sequence
 from datetime import UTC, datetime
 from typing import Any, Literal, Protocol
 
@@ -82,8 +82,11 @@ class EligibilitySummary(BaseModel):
 class AnswerLike(Protocol):
     """Réponse de l'utilisateur à une question liée à l'exigence (modèle `QuestionAnswer`, 7.3)."""
 
-    id: Any
-    text: str
+    @property
+    def id(self) -> Any: ...
+
+    @property
+    def text(self) -> str: ...
 
 
 def _mentions(term: str, text: str) -> bool:
@@ -125,7 +128,7 @@ class EligibilityEngine:
 
     # --- jugement d'une exigence ---------------------------------------------------------------
 
-    def judge(self, req: TenderRequirement, answers: list[AnswerLike]) -> Judgement:
+    def judge(self, req: TenderRequirement, answers: Sequence[AnswerLike]) -> Judgement:
         if answers:
             return self._from_answer(answers[-1])
         match RequirementCategory(req.category):
@@ -317,24 +320,33 @@ class EligibilityEngine:
 
     # --- évaluation d'une fiche ----------------------------------------------------------------
 
-    def evaluate(
-        self, tender: Tender, answers_by_requirement: dict[Any, list[AnswerLike]] | None = None
-    ) -> EligibilitySummary:
-        self.tender = tender
-        answers_by_requirement = answers_by_requirement or {}
-        for req in tender.requirements:
-            if req.manual_status:
-                continue  # la main de l'utilisateur prime sur les règles
-            judgement = self.judge(req, answers_by_requirement.get(req.id, []))
-            req.status = judgement.status
-            req.justification = judgement.justification
-            req.evidence = [e.model_dump() for e in judgement.evidence]
+    @staticmethod
+    def apply(req: TenderRequirement, judgement: Judgement) -> None:
+        req.status = judgement.status
+        req.justification = judgement.justification
+        req.evidence = [e.model_dump() for e in judgement.evidence]
+
+    def refresh(self, tender: Tender) -> EligibilitySummary:
+        """Résumé recalculé dans `tender.extra["eligibility"]` et score relancé (le sous-score
+        « éligibilité » suit le ratio) — après `evaluate` comme après une réponse à une question."""
         summary = self.summarize(tender)
         extra = dict(tender.extra or {})
         extra["eligibility"] = summary.model_dump()
         tender.extra = extra
         self.db.flush()
-        ScoreService(self.db, self.llm).score_tender(tender)  # le sous-score « éligibilité » suit le ratio
+        ScoreService(self.db, self.llm).score_tender(tender)
+        return summary
+
+    def evaluate(
+        self, tender: Tender, answers_by_requirement: Mapping[Any, Sequence[AnswerLike]] | None = None
+    ) -> EligibilitySummary:
+        self.tender = tender
+        answers = answers_by_requirement or {}
+        for req in tender.requirements:
+            if req.manual_status:
+                continue  # la main de l'utilisateur prime sur les règles
+            self.apply(req, self.judge(req, answers.get(req.id, [])))
+        summary = self.refresh(tender)
         for req in tender.requirements:
             if req.is_mandatory and req.status in (S.NON_CONFORME, S.INFO_MANQUANTE):
                 self.on_mandatory_unmet(tender, req)  # RB-003

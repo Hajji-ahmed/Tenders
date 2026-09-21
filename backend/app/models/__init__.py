@@ -25,6 +25,7 @@ from app.models.document import (
     ExtractionStatus,
 )
 from app.models.job import Job, JobStatus
+from app.models.question import Question, QuestionAnswer, QuestionStatus
 from app.models.requirement import (
     CODE_PREFIX,
     Priority,
@@ -69,6 +70,9 @@ __all__ = [
     "JobStatus",
     "Priority",
     "Project",
+    "Question",
+    "QuestionAnswer",
+    "QuestionStatus",
     "Reference",
     "RequirementCategory",
     "RequirementStatus",

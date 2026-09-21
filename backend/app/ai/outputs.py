@@ -94,6 +94,13 @@ class RequirementsOutput(BaseModel):
     requirements: list[RequirementOutput] = Field(default_factory=list)
 
 
+class QuestionOutput(BaseModel):
+    """Une question précise à poser à l'utilisateur sur une exigence que le moteur n'a pu trancher."""
+
+    text: str = Field(description="La question, en une ou deux phrases, qui se termine par « ? »")
+    priority: Priority = Field(description="CRITIQUE si l'absence est éliminatoire, IMPORTANTE, FACULTATIVE")
+
+
 class ScoreAssessment(BaseModel):
     """Lecture du modèle sur un score déterministe (RB-004 : justification obligatoire) : il explique,
     liste forces et faiblesses, et peut corriger le total de ± 10 points au plus, en le motivant."""

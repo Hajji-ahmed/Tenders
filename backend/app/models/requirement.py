@@ -4,12 +4,16 @@ posé par le moteur (7.2) ou à la main (`manual_status` : conservé lors d'une 
 
 import enum
 import uuid
+from typing import TYPE_CHECKING
 
 from sqlalchemy import JSON, Boolean, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin, UUIDMixin
 from app.models.tender import Tender, TenderDocument
+
+if TYPE_CHECKING:
+    from app.models.question import Question
 
 
 class RequirementCategory(enum.StrEnum):
@@ -74,6 +78,13 @@ class TenderRequirement(UUIDMixin, TimestampMixin, Base):
 
     tender: Mapped[Tender] = relationship(back_populates="requirements")
     source_document: Mapped[TenderDocument | None] = relationship()
+    # Phase 7 (models/question) : les questions posées pour cette exigence, plus anciennes d'abord.
+    questions: Mapped[list["Question"]] = relationship(
+        back_populates="requirement",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        order_by="Question.created_at",
+    )
 
     @property
     def source_document_name(self) -> str | None:
