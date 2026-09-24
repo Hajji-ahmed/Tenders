@@ -370,6 +370,82 @@ export type AnalysisCriterion = {
   source_page: number | null;
 };
 
+// --- Exigences, éligibilité, questions (Phase 7) ---
+
+export type RequirementCategory =
+  | "administrative"
+  | "technique"
+  | "financiere"
+  | "juridique"
+  | "experience"
+  | "equipe"
+  | "certification"
+  | "methodologie"
+  | "autre";
+export type RequirementStatus = "CONFORME" | "A_VERIFIER" | "NON_CONFORME" | "INFO_MANQUANTE";
+export type Priority = "CRITIQUE" | "IMPORTANTE" | "FACULTATIVE";
+
+/** Élément du profil retenu par le moteur d'éligibilité (certification, document, expert, réponse…). */
+export type Evidence = {
+  kind: "certification" | "technology" | "skill" | "expert" | "project" | "document" | "answer" | "chunk";
+  id: string;
+  label: string;
+};
+
+export type TenderRequirement = {
+  id: string;
+  tender_id: string;
+  code: string;
+  category: RequirementCategory;
+  description: string;
+  is_mandatory: boolean;
+  evidence_required: string | null;
+  priority: Priority;
+  status: RequirementStatus;
+  justification: string | null;
+  evidence: Evidence[];
+  manual_status: boolean;
+  source_document_id: string | null;
+  source_document_name: string | null;
+  source_page: number | null;
+  source_excerpt: string | null;
+  updated_at: string;
+};
+
+export type RequirementUpdate = {
+  status?: RequirementStatus;
+  justification?: string | null;
+  is_mandatory?: boolean;
+  priority?: Priority;
+};
+
+/** Synthèse d'éligibilité d'une fiche (`tender.extra.eligibility`). */
+export type EligibilitySummary = {
+  total: number;
+  by_status: Partial<Record<RequirementStatus, number>>;
+  /** Codes des exigences obligatoires NON_CONFORME ou INFO_MANQUANTE (RB-003). */
+  mandatory_unmet: string[];
+  ratio: number;
+  evaluated_at: string | null;
+};
+
+export type QuestionStatus = "open" | "answered" | "skipped";
+
+export type QuestionAnswer = { id: string; answer: string; answered_at: string };
+
+export type Question = Timestamps & {
+  id: string;
+  tender_id: string;
+  requirement_id: string;
+  requirement_code: string;
+  requirement_status: RequirementStatus;
+  is_mandatory: boolean;
+  text: string;
+  priority: Priority;
+  status: QuestionStatus;
+  answer: QuestionAnswer | null;
+};
+
 export type TenderAnalysis = {
   id: string;
   tender_id: string;
