@@ -17,6 +17,8 @@ celery_app = Celery(
         "app.workers.tasks.scoring",
         "app.workers.tasks.documents",
         "app.workers.tasks.analysis",
+        "app.workers.tasks.eligibility",
+        "app.workers.tasks.questions",
     ],
 )
 

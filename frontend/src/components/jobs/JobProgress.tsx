@@ -37,10 +37,35 @@ function summary(job: Job): string | null {
     }
     case "calculate_match_score":
       return r && r.total !== undefined ? `Score ${r.total} / 100` : job.message;
+    case "evaluate_eligibility": {
+      if (!r || r.ratio === undefined) return job.message;
+      const unmet = Array.isArray(r.mandatory_unmet) ? r.mandatory_unmet.length : 0;
+      const parts = [`Éligibilité ${Math.round(Number(r.ratio) * 100)} %`];
+      if (unmet) parts.push(plural(unmet, "obligatoire non satisfaite", "obligatoires non satisfaites"));
+      if (Number(r.questions ?? 0)) parts.push(plural(Number(r.questions), "question à traiter", "questions à traiter"));
+      return parts.join(" · ");
+    }
+    case "generate_questions": {
+      if (!r) return job.message;
+      const open = Number(r.open ?? 0);
+      if (!open) return "Aucune question à traiter";
+      return `${plural(open, "question à traiter", "questions à traiter")} (${r.created ?? 0} nouvelle${Number(r.created ?? 0) > 1 ? "s" : ""})`;
+    }
     default:
       return job.message;
   }
 }
+
+/** Ce que le job est en train de faire, pendant qu'il tourne. */
+const RUNNING_LABELS: Record<string, string> = {
+  search_tenders: "Recherche en cours",
+  download_tender_documents: "Récupération des pièces",
+  index_document: "Indexation en cours",
+  analyze_tender: "Analyse du dossier",
+  calculate_match_score: "Calcul du score",
+  evaluate_eligibility: "Évaluation de l'éligibilité",
+  generate_questions: "Formulation des questions",
+};
 
 /** Suivi en direct d'un job (sondage toutes les 2 s) : barre, message, résultat ou erreur. */
 export function JobProgress({ jobId, className, onSettled }: Props) {
@@ -93,10 +118,10 @@ export function JobProgress({ jobId, className, onSettled }: Props) {
 
   return (
     <div className={cn("rounded-lg border bg-card px-3 py-2", className)}>
-      <Progress value={data.progress} aria-label="Progression de la recherche">
+      <Progress value={data.progress} aria-label="Progression du traitement">
         <ProgressLabel className="flex items-center gap-2 text-brand-green-dark">
           <LoaderCircle aria-hidden className="size-4 animate-spin text-brand-blue" />
-          Recherche en cours
+          {RUNNING_LABELS[data.type] ?? "Traitement en cours"}
         </ProgressLabel>
         <ProgressValue />
       </Progress>

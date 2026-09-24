@@ -9,6 +9,7 @@ from uuid import UUID
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 from app.ai.outputs import TenderCandidate
+from app.models.requirement import Priority, RequirementCategory, RequirementStatus
 from app.models.scoring import DecisionKind
 from app.models.tender import DownloadStatus, SourceKind, TenderStatus, Urgency
 from app.schemas.company import _clean_tags
@@ -324,6 +325,49 @@ class CriterionOut(BaseModel):
     source_page: int | None
 
     model_config = {"from_attributes": True}
+
+
+class EvidenceOut(BaseModel):
+    kind: str
+    id: str
+    label: str
+
+
+class RequirementOut(BaseModel):
+    id: UUID
+    tender_id: UUID
+    code: str
+    category: RequirementCategory
+    description: str
+    is_mandatory: bool
+    evidence_required: str | None
+    priority: Priority
+    status: RequirementStatus
+    justification: str | None
+    evidence: list[EvidenceOut]
+    manual_status: bool
+    source_document_id: UUID | None
+    source_document_name: str | None
+    source_page: int | None
+    source_excerpt: str | None
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class RequirementUpdate(BaseModel):
+    status: RequirementStatus | None = None
+    justification: str | None = Field(None, max_length=4000)
+    is_mandatory: bool | None = None
+    priority: Priority | None = None
+
+
+class EligibilitySummaryOut(BaseModel):
+    total: int
+    by_status: dict[str, int]
+    mandatory_unmet: list[str]
+    ratio: float
+    evaluated_at: str | None = None
 
 
 class TenderAnalysisOut(BaseModel):

@@ -8,9 +8,23 @@ import pytest
 from sqlalchemy import select
 
 from app.ai.llm import FakeLLM
-from app.ai.outputs import CriterionOut, DatedItem, TenderAnalysisOutput
+from app.ai.outputs import (
+    CriterionOut,
+    DatedItem,
+    RequirementOutput,
+    RequirementsOutput,
+    TenderAnalysisOutput,
+)
 from app.core import deps
-from app.models import DocumentChunk, DownloadStatus, ExtractionStatus, JobStatus, Tender
+from app.models import (
+    DocumentChunk,
+    DownloadStatus,
+    ExtractionStatus,
+    JobStatus,
+    Priority,
+    RequirementCategory,
+    Tender,
+)
 from app.services.jobs import JobService
 
 URL = "/api/v1/tenders"
@@ -54,7 +68,21 @@ def chain_env(monkeypatch, real_pdf):
     monkeypatch.setattr(
         deps, "_download_client_override", httpx.Client(transport=httpx.MockTransport(handler))
     )
-    llm = FakeLLM([_output()])
+    requirements = RequirementsOutput(
+        requirements=[
+            RequirementOutput(
+                category=RequirementCategory.administrative,
+                description="Attestation fiscale en cours de validité",
+                is_mandatory=True,
+                evidence_required="Attestation fiscale",
+                priority=Priority.CRITIQUE,
+                source_document="dce.pdf",
+                source_page=1,
+                source_excerpt=None,
+            )
+        ]
+    )
+    llm = FakeLLM([_output(), requirements])  # analyse du dossier, puis exigences de l'unique pièce lisible
     monkeypatch.setattr(deps, "_llm_override", llm)
     return llm
 
@@ -85,8 +113,22 @@ def test_analyze_job_chains_download_index_and_analysis(
         "indexed": 1,
         "index_failed": 0,
         "criteria": 3,
+        "requirements": 1,
+        "eligibility_ratio": 0.0,
+        "mandatory_unmet": ["ADM-001"],
+        "questions": 1,
     }
-    assert job.progress == 100 and "Analyse terminée" in (job.message or "")
+    assert job.progress == 100 and "Analyse terminée" in (job.message or "") and "1 exigence" in job.message
+    assert "1 question à traiter" in job.message
+    assert [r.code for r in tender.requirements] == ["ADM-001"]
+    # l'éligibilité est évaluée dans la foulée : pas d'attestation fiscale au profil ⇒ info manquante,
+    # et une question est posée (repli générique : le LLM scripté n'a plus de réponse)
+    assert tender.requirements[0].status == "INFO_MANQUANTE" and tender.extra["eligibility"]["ratio"] == 0.0
+    assert len(tender.questions) == 1 and tender.questions[0].priority == "CRITIQUE"
+    assert "Attestation fiscale en cours de validité" in tender.questions[0].text
+    assert tender.requirements[0].source_document_id == next(
+        d.id for d in tender.documents if d.name == "dce.pdf"
+    )
     docs = {d.name: d for d in tender.documents}
     assert (
         docs["dce.pdf"].download_status == DownloadStatus.done

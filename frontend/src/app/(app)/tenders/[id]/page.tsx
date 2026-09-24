@@ -10,6 +10,8 @@ import { JobProgress } from "@/components/jobs/JobProgress";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { DecisionButtons } from "@/components/tenders/DecisionButtons";
 import { DossierSection } from "@/components/tenders/DossierSection";
+import { QuestionsSection } from "@/components/tenders/QuestionsSection";
+import { RequirementsSection } from "@/components/tenders/RequirementsSection";
 import { ScoreBreakdown } from "@/components/tenders/ScoreBreakdown";
 import { ScoreCard } from "@/components/tenders/ScoreCard";
 import { StatusTimeline } from "@/components/tenders/StatusTimeline";
@@ -266,8 +268,18 @@ function TenderPageInner() {
           </Card>
           <DossierSection tenderId={id} onTenderChanged={() => void tender.refetch()} />
         </TabsContent>
-        <TabsContent value="requirements" className="pt-4"><Placeholder label="Analyse des exigences" /></TabsContent>
-        <TabsContent value="questions" className="pt-4"><Placeholder label="Questions à l'acheteur" /></TabsContent>
+        <TabsContent value="requirements" className="pt-4">
+          <RequirementsSection
+            tenderId={id}
+            onEvaluated={() => {
+              void score.refetch();
+              void tender.refetch();
+            }}
+          />
+        </TabsContent>
+        <TabsContent value="questions" className="pt-4">
+          <QuestionsSection tenderId={id} onAnswered={() => void score.refetch()} />
+        </TabsContent>
         <TabsContent value="application" className="pt-4"><Placeholder label="Dossier de candidature" /></TabsContent>
         <TabsContent value="history" className="pt-4">
           {history.isPending ? <Skeleton className="h-32 w-full" /> : <StatusTimeline entries={history.data ?? []} />}

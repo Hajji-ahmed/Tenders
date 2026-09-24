@@ -16,6 +16,8 @@ from app.models.document import ExtractionStatus
 
 if TYPE_CHECKING:
     from app.models.analysis import TenderAnalysis, TenderCriterion
+    from app.models.question import Question
+    from app.models.requirement import TenderRequirement
     from app.models.scoring import TenderDecision, TenderScore, TenderStatusHistory
 
 
@@ -180,6 +182,20 @@ class Tender(UUIDMixin, TimestampMixin, Base):
         cascade="all, delete-orphan",
         passive_deletes=True,
         order_by="TenderCriterion.position",
+    )
+    # Phase 7 (models/requirement) : les exigences du dossier, triées par code.
+    requirements: Mapped[list["TenderRequirement"]] = relationship(
+        back_populates="tender",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        order_by="TenderRequirement.code",
+    )
+    # Phase 7 (models/question) : les questions posées à l'utilisateur, dans l'ordre de création.
+    questions: Mapped[list["Question"]] = relationship(
+        back_populates="tender",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        order_by="Question.created_at",
     )
 
     @property
