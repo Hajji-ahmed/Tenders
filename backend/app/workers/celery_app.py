@@ -19,6 +19,7 @@ celery_app = Celery(
         "app.workers.tasks.analysis",
         "app.workers.tasks.eligibility",
         "app.workers.tasks.questions",
+        "app.workers.tasks.knowledge",
     ],
 )
 

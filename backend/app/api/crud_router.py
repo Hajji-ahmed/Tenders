@@ -6,6 +6,7 @@ DELETE /{item_id} (204). Toutes exigent un utilisateur connecté et journalisent
 l'entreprise unique (`company_id`) et un identifiant d'une autre entreprise renvoie 404.
 """
 
+from collections.abc import Callable
 from typing import Any
 from uuid import UUID
 
@@ -46,8 +47,11 @@ def build_crud_router(
     order_by: Any = None,
     scoped_to_company: bool = True,
     audit_action: str = AUDIT_ACTION,
+    on_change: Callable[[Session], None] | None = None,
 ) -> APIRouter:
-    """`order_by` : une expression ou un tuple d'expressions ; `audit_action` : action journalisée."""
+    """`order_by` : une expression ou un tuple d'expressions ; `audit_action` : action journalisée ;
+    `on_change` : appelé après chaque création, mise à jour ou suppression (Phase 8 : le résumé IA
+    du profil est à refaire)."""
     router = APIRouter(prefix=prefix, tags=[tag], dependencies=[Depends(get_current_user)])
     default_order = order_by if order_by is not None else model.created_at.desc()
     order = default_order if isinstance(default_order, tuple) else (default_order,)
@@ -72,6 +76,8 @@ def build_crud_router(
             payload=payload,
             user_id=user.id,
         )
+        if on_change is not None:
+            on_change(db)
 
     @router.get("", response_model=page_model)
     def list_items(p: PageParams = Depends(page_params), db: Session = Depends(get_db)):

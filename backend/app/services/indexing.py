@@ -26,6 +26,19 @@ def _estimate_tokens(text: str) -> int:
     return max(1, len(text) // 4)
 
 
+def _document_meta(doc: TenderDocument | CompanyDocument) -> dict:
+    """Ce que la recherche a besoin de savoir sans relire le document (Phase 8) : pour un document
+    d'entreprise, sa catégorie, son nom, sa date d'expiration et sa version."""
+    if isinstance(doc, CompanyDocument):
+        return {
+            "category": str(doc.category),
+            "name": doc.name,
+            "expires_at": doc.expires_at.isoformat() if doc.expires_at else None,
+            "version": doc.version,
+        }
+    return {}
+
+
 class IndexingService:
     def __init__(self, db: Session, storage: StorageProvider, embeddings: EmbeddingProvider):
         self.db = db
@@ -74,6 +87,7 @@ class IndexingService:
     def _build_chunks(
         self, kind: Kind, doc: TenderDocument | CompanyDocument, documents: list[ExtractedDocument]
     ) -> list[DocumentChunk]:
+        base = _document_meta(doc)
         rows: list[DocumentChunk] = []
         for extracted in documents:
             inner = extracted.metadata.get("inner_filename")
@@ -89,7 +103,7 @@ class IndexingService:
                         section=chunk.section,
                         content=chunk.text,
                         token_count=_estimate_tokens(chunk.text),
-                        meta={"inner_filename": inner} if inner else {},
+                        meta=base | ({"inner_filename": inner} if inner else {}),
                     )
                 )
         return rows

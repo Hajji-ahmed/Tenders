@@ -29,9 +29,19 @@ from app.schemas.company import (
     TechnologyUpdate,
 )
 from app.services.company import CompanyService
+from app.services.jobs import JobService
+
+SUMMARY_JOB = "refresh_company_summary"
 
 # Pas de `tags` sur le routeur parent : ils sont posés route par route (sinon doublon dans l'OpenAPI).
 router = APIRouter(prefix="/company", dependencies=[Depends(get_current_user)])
+
+
+def ask_summary_refresh(db: Session) -> None:
+    """Le profil a changé : son résumé IA est à refaire (Phase 8). `enqueue_once` évite d'empiler un
+    job par modification — celui qui attend relira de toute façon l'ensemble des faits."""
+    company = CompanyService.get_or_create(db)
+    JobService.enqueue_once(db, SUMMARY_JOB, entity_kind="company", entity_id=company.id)
 
 
 @router.get("/profile", response_model=CompanyProfileOut, tags=["company"])
@@ -45,6 +55,7 @@ def put_profile(
     body: CompanyProfileIn, db: Session = Depends(get_db), user: User = Depends(get_current_user)
 ):
     company = CompanyService.update_profile(db, body.model_dump(exclude_unset=True), user_id=user.id)
+    ask_summary_refresh(db)
     return CompanyProfileOut.from_company(company, CompanyService.counts(db, company))
 
 
@@ -67,5 +78,14 @@ _SUB_RESOURCES = [
 
 for _model, _create, _update, _read, _name, _order in _SUB_RESOURCES:
     router.include_router(
-        build_crud_router(_model, _create, _update, _read, prefix=f"/{_name}", tag="company", order_by=_order)
+        build_crud_router(
+            _model,
+            _create,
+            _update,
+            _read,
+            prefix=f"/{_name}",
+            tag="company",
+            order_by=_order,
+            on_change=ask_summary_refresh,  # compétences, experts, projets… : le résumé IA suit
+        )
     )
