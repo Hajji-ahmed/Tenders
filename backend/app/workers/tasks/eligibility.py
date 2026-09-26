@@ -1,12 +1,15 @@
 """Job `evaluate_eligibility` : juge chaque exigence d'une fiche contre le profil de l'entreprise (les
-réponses déjà données aux questions priment), résume (ratio, obligatoires non satisfaites — RB-003),
+réponses déjà données aux questions priment), reprend sur pièces ce que les règles n'ont pu trancher
+(base de connaissances + modèle, Phase 8.4), résume (ratio, obligatoires non satisfaites — RB-003),
 relance le score, puis formule les questions ciblées pour ce qui reste à trancher."""
 
 from uuid import UUID
 
+from app.core import deps
 from app.models import Tender
 from app.services.company import CompanyService
 from app.services.eligibility import EligibilityEngine
+from app.services.knowledge import KnowledgeBase
 from app.services.questions import QuestionService
 from app.workers.tasks.questions import questions_message
 from app.workers.tracking import set_progress, tracked_task
@@ -18,7 +21,8 @@ def evaluate_eligibility(db, job, *, tender_id: str) -> dict:
     if tender is None:
         raise ValueError(f"Opportunité introuvable : {tender_id}")
     set_progress(db, job, 10, f"Évaluation de {len(tender.requirements)} exigences")
-    engine = EligibilityEngine(db, CompanyService.get_or_create(db))
+    kb = KnowledgeBase(db, deps.get_embeddings())
+    engine = EligibilityEngine(db, CompanyService.get_or_create(db), llm=deps.get_llm(), kb=kb)
     summary = engine.evaluate(tender, QuestionService.answers_by_requirement(tender))
     db.commit()
 

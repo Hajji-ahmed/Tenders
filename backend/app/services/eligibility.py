@@ -16,6 +16,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.ai.llm import LLMProvider
+from app.ai.outputs import EligibilityJudgement
+from app.ai.prompts import eligibility_judge
 from app.core.audit import record_audit
 from app.core.logging import get_logger
 from app.models import (
@@ -27,6 +29,7 @@ from app.models import (
     TenderRequirement,
 )
 from app.models.document import DocumentCategory
+from app.services.knowledge import KBHit, KnowledgeBase
 from app.services.normalize import norm_text
 from app.services.score_service import ScoreService
 
@@ -52,6 +55,9 @@ _WORDS = {"un": 1, "une": 1, "deux": 2, "trois": 3, "quatre": 4, "cinq": 5, "six
 _NUMBER_WORDS = re.compile(r"\b(un|une|deux|trois|quatre|cinq|six|dix)\s+(ans|annees|projets?|references?)")
 _YES = re.compile(r"\boui\b|\bok\b|\baffirmatif\b", re.IGNORECASE)
 _NO = re.compile(r"\bnon\b|\bpas\b|\baucun", re.IGNORECASE)
+_REF = re.compile(r"S\s*(\d+)", re.IGNORECASE)  # « S1 », « [S2] », « s 3 » cités par le modèle
+RAG_HITS = 5  # extraits soumis au modèle pour une exigence
+RAG_CONTEXT_CHARS = 6_000
 DOCUMENT_CATEGORIES: dict[RequirementCategory, tuple[DocumentCategory, ...]] = {
     C.administrative: (DocumentCategory.administratif, DocumentCategory.attestation),
     C.financiere: (DocumentCategory.financier,),
@@ -118,11 +124,15 @@ class EligibilityEngine:
         company: Company,
         *,
         llm: LLMProvider | None = None,
+        kb: KnowledgeBase | None = None,
         on_mandatory_unmet: Callable[[Tender, TenderRequirement], None] | None = None,
     ):
+        """`kb` (Phase 8.4) : avec une base de connaissances, ce que les règles n'ont pu trancher est
+        repris par le modèle sur pièces. Sans elle, le moteur reste purement déterministe."""
         self.db = db
         self.company = company
         self.llm = llm
+        self.kb = kb
         self.tender: Tender | None = None  # posé par `evaluate` : contexte (secteur) des règles d'expérience
         self.on_mandatory_unmet = on_mandatory_unmet or self._log_unmet
 
@@ -318,8 +328,6 @@ class EligibilityEngine:
             status=S.INFO_MANQUANTE, justification="Aucun document correspondant dans la base documentaire"
         )
 
-    # --- évaluation d'une fiche ----------------------------------------------------------------
-
     @staticmethod
     def apply(req: TenderRequirement, judgement: Judgement) -> None:
         req.status = judgement.status
@@ -337,6 +345,78 @@ class EligibilityEngine:
         ScoreService(self.db, self.llm).score_tender(tender)
         return summary
 
+    # --- raffinement sur pièces (Phase 8.4) ----------------------------------------------------
+
+    def refine(self, req: TenderRequirement, judgement: Judgement) -> Judgement:
+        """Reprend un jugement indécis à la lumière des documents de l'entreprise.
+
+        Le modèle ne voit que des extraits de documents utilisables (RB-007) et doit citer ceux sur
+        lesquels il s'appuie : une conformité sans citation retrouvable est rétrogradée. Si rien
+        n'est indexé, si le modèle échoue ou si l'exigence est déjà tranchée, le verdict des règles
+        reste tel quel."""
+        if self.kb is None or self.llm is None or self.tender is None:
+            return judgement
+        if judgement.status not in (S.A_VERIFIER, S.INFO_MANQUANTE):
+            return judgement
+        if any(e.kind == "answer" for e in judgement.evidence):
+            return judgement  # l'utilisateur a répondu : sa parole prime sur les pièces
+        hits = self.kb.search(req.description, owner_kind="company_document", k=RAG_HITS)
+        if not hits:
+            return judgement
+        context = self.kb.build_context(hits, max_chars=RAG_CONTEXT_CHARS)
+        try:
+            verdict = self.llm.structured(
+                system=eligibility_judge.SYSTEM,
+                user=eligibility_judge.user_prompt(self.tender, req, context, judgement.justification),
+                output=EligibilityJudgement,
+                tier="fast",
+            )
+        except Exception as e:  # noqa: BLE001 — quota, réseau, refus : les règles ont déjà conclu
+            log.warning("eligibility.rag_failed", code=req.code, error=f"{type(e).__name__}: {e}")
+            return judgement
+        return self._guard(req, judgement, verdict, hits)
+
+    @staticmethod
+    def _cited(refs: list[str], hits: list[KBHit]) -> list[KBHit]:
+        """Extraits réellement cités : « S1 », « [S2] », « s3 » → les hits correspondants."""
+        cited: list[KBHit] = []
+        for ref in refs:
+            match = _REF.search(str(ref))
+            if match is None:
+                continue
+            index = int(match.group(1))
+            if 1 <= index <= len(hits) and hits[index - 1] not in cited:
+                cited.append(hits[index - 1])
+        return cited
+
+    def _guard(
+        self, req: TenderRequirement, rules: Judgement, verdict: EligibilityJudgement, hits: list[KBHit]
+    ) -> Judgement:
+        cited = self._cited(verdict.evidence_refs, hits)
+        justification = verdict.justification.strip() or rules.justification
+        if verdict.status == S.CONFORME and not cited:
+            # RB-005 : une conformité affirmée sans preuve retrouvable n'est pas une conformité.
+            log.warning("eligibility.uncited_compliance", code=req.code, refs=verdict.evidence_refs)
+            return Judgement(
+                status=S.A_VERIFIER,
+                justification=f"{justification} (preuve non fournie : à vérifier à la main)",
+                evidence=rules.evidence,
+            )
+        status = verdict.status
+        if status == S.NON_CONFORME and not cited:
+            # L'absence de preuve n'est pas la preuve d'une absence : constaté en réel, le modèle
+            # déclarait « non conforme » faute d'extrait sur un acte d'engagement — c'est une
+            # information manquante, à demander, pas un motif de rejet.
+            log.info("eligibility.uncited_noncompliance", code=req.code)
+            status = S.INFO_MANQUANTE
+        # Rien n'a été trouvé : ne pas afficher comme preuves des documents qui ne prouvent rien.
+        evidence = list(rules.evidence)
+        if status != S.INFO_MANQUANTE:
+            evidence += [Evidence(kind="chunk", id=str(h.chunk_id), label=h.source) for h in cited]
+        return Judgement(status=status, justification=justification, evidence=evidence)
+
+    # --- évaluation d'une fiche ----------------------------------------------------------------
+
     def evaluate(
         self, tender: Tender, answers_by_requirement: Mapping[Any, Sequence[AnswerLike]] | None = None
     ) -> EligibilitySummary:
@@ -345,7 +425,7 @@ class EligibilityEngine:
         for req in tender.requirements:
             if req.manual_status:
                 continue  # la main de l'utilisateur prime sur les règles
-            self.apply(req, self.judge(req, answers.get(req.id, [])))
+            self.apply(req, self.refine(req, self.judge(req, answers.get(req.id, []))))
         summary = self.refresh(tender)
         for req in tender.requirements:
             if req.is_mandatory and req.status in (S.NON_CONFORME, S.INFO_MANQUANTE):

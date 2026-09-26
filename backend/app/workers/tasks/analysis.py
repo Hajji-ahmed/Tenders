@@ -11,6 +11,7 @@ from app.services.analysis import AnalysisService
 from app.services.company import CompanyService
 from app.services.eligibility import EligibilityEngine
 from app.services.indexing import IndexingService
+from app.services.knowledge import KnowledgeBase
 from app.services.questions import QuestionService
 from app.services.requirements import RequirementsService
 from app.services.tender_documents import TenderDocumentService
@@ -59,7 +60,12 @@ def analyze_tender(db, job, *, tender_id: str) -> dict:
     db.commit()
 
     set_progress(db, job, 90, "Évaluation de l'éligibilité")
-    engine = EligibilityEngine(db, CompanyService.get_or_create(db))
+    engine = EligibilityEngine(
+        db,
+        CompanyService.get_or_create(db),
+        llm=deps.get_llm(),
+        kb=KnowledgeBase(db, deps.get_embeddings()),  # les pièces de l'entreprise étayent les indécis
+    )
     eligibility = engine.evaluate(tender, QuestionService.answers_by_requirement(tender))
     db.commit()
 

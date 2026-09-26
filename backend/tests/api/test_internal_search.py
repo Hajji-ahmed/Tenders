@@ -147,9 +147,7 @@ def test_similar_tenders_are_found_by_their_embedding(auth_client, haystack):
 def test_distant_semantic_matches_are_dropped(auth_client, haystack):
     """Le plus proche n'est pas forcément proche : sous le plancher, on ne propose rien (constaté en
     réel — une question sur la télégestion remontait dix opportunités sans rapport, à 34 %)."""
-    body = auth_client.get(
-        URL, params={"q": "recette de tajine aux pruneaux", "semantic": "true"}
-    ).json()
+    body = auth_client.get(URL, params={"q": "recette de tajine aux pruneaux", "semantic": "true"}).json()
     assert body["groups"] == [] and body["total"] == 0
 
 
