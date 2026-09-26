@@ -1,6 +1,7 @@
-import { render, screen, within } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { render as baseRender, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { TendersTable } from "@/components/tenders/TendersTable";
 import type { Tender, TenderSourceLink } from "@/lib/types";
@@ -10,18 +11,27 @@ const links: TenderSourceLink[] = [
   { id: "l2", source_id: "s2", source_name: "Flux portail", url: "https://marches.ma/avis/77", title_seen: null, collected_at: "2026-09-15T10:00:00Z" },
 ];
 
-const state: { sources: TenderSourceLink[] | undefined; pending: boolean; enabled: boolean | undefined } = {
-  sources: links,
-  pending: false,
-  enabled: undefined,
-};
+/** `fetch` simulé plutôt qu'un `vi.mock` du module de requêtes : les fichiers de test partagent un
+ * worker (`isolate: false`), et un module déjà chargé par un autre fichier échappe au mock. */
+const calls: string[] = [];
 
-vi.mock("@/lib/queries/tenders", () => ({
-  useTenderSources: (_id: string, opts?: { enabled?: boolean }) => {
-    state.enabled = opts?.enabled;
-    return { data: state.sources, isPending: state.pending, isError: false };
-  },
-}));
+function render(ui: React.ReactElement) {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return baseRender(<QueryClientProvider client={client}>{ui}</QueryClientProvider>);
+}
+
+beforeEach(() => {
+  calls.length = 0;
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (url: string) => {
+      calls.push(url);
+      return { ok: true, status: 200, json: async () => links } as unknown as Response;
+    }),
+  );
+});
+
+afterEach(() => vi.unstubAllGlobals());
 
 function tender(over: Partial<Tender>): Tender {
   return {
@@ -57,12 +67,6 @@ function tender(over: Partial<Tender>): Tender {
   };
 }
 
-beforeEach(() => {
-  state.sources = links;
-  state.pending = false;
-  state.enabled = undefined;
-});
-
 describe("TendersTable", () => {
   it("renders organisation, country, deadline with urgency, status, sources and score placeholder", () => {
     render(<TendersTable rows={[tender({})]} />);
@@ -91,12 +95,12 @@ describe("TendersTable", () => {
 
   it("lists the source announcements only once the popover is opened", async () => {
     render(<TendersTable rows={[tender({})]} />);
-    expect(state.enabled).toBe(false); // pas de requête tant que la liste n'est pas ouverte
+    expect(calls).toEqual([]); // pas de requête tant que la liste n'est pas ouverte
 
     await userEvent.click(screen.getByRole("button", { name: /2 sources/ }));
 
-    expect(state.enabled).toBe(true);
     const popover = await screen.findByRole("dialog", { name: /provenance/i });
+    expect(calls).toEqual(["/api/v1/tenders/t1/sources"]);
     const items = within(popover).getAllByRole("listitem");
     expect(items).toHaveLength(2);
     expect(within(items[0]).getByRole("link", { name: /Refonte SI/ })).toHaveAttribute("href", "https://portail.ma/ao/1");

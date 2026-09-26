@@ -10,6 +10,7 @@ from app.api.v1 import (
     questions,
     requirements,
     scoring,
+    search,
     search_profiles,
     searches,
     sources,
@@ -23,6 +24,7 @@ api_router.include_router(auth.router, tags=["auth"])
 api_router.include_router(jobs.router, tags=["jobs"])
 api_router.include_router(company.router)
 api_router.include_router(documents.router)
+api_router.include_router(search.router)  # /search (recherche interne) ≠ /searches (lancements)
 api_router.include_router(search_profiles.router)
 api_router.include_router(sources.router)
 api_router.include_router(searches.router)

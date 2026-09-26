@@ -16,10 +16,13 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { cn } from "cn";
 
 import { LogoMark } from "@/components/brand/Logo";
+
+export const SEARCH_HREF = "/search";
 
 /** `count` : compteur jaune (notifications non lues, échéances) — absent = rien ne s'affiche. */
 export type NavItem = { href: string; label: string; icon: LucideIcon; count?: number };
@@ -65,6 +68,24 @@ export function isActivePath(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(href + "/");
 }
 
+/** `Ctrl+K` (ou `⌘K`) ouvre la recherche interne, sauf pendant une saisie — un champ garde son texte. */
+export function useSearchShortcut(): void {
+  const router = useRouter();
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key.toLowerCase() !== "k" || !(event.ctrlKey || event.metaKey)) return;
+      const target = event.target as HTMLElement | null;
+      if (target?.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target?.tagName ?? "")) {
+        return;
+      }
+      event.preventDefault();
+      router.push(SEARCH_HREF);
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [router]);
+}
+
 /** Bloc logo + nom (haut de la barre latérale et du menu mobile). */
 export function SidebarBrand() {
   return (
@@ -86,6 +107,7 @@ export function SidebarBrand() {
 /** Liste de navigation (groupes + éléments), partagée par la barre latérale et le menu mobile. */
 export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
+  useSearchShortcut();
   return (
     <nav aria-label="Navigation principale" className="space-y-6">
       {NAV.map((group) => (
@@ -124,6 +146,15 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
                       )}
                     />
                     <span className="truncate">{label}</span>
+                    {href === SEARCH_HREF && (
+                      <kbd
+                        aria-hidden
+                        className="ml-auto rounded border border-sidebar-border px-1.5 py-0.5 text-[10px] font-medium text-sidebar-foreground/60"
+                        title="Ctrl + K"
+                      >
+                        ⌃K
+                      </kbd>
+                    )}
                     {typeof count === "number" && count > 0 && (
                       <span className="ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-brand-yellow px-1.5 text-[10px] font-semibold tabular-nums text-brand-yellow-ink">
                         {count > 99 ? "99+" : count}

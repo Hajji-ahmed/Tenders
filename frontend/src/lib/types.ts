@@ -370,6 +370,31 @@ export type AnalysisCriterion = {
   source_page: number | null;
 };
 
+// --- Recherche interne (Phase 8, Module 18) ---
+
+export type SearchKind = "tenders" | "documents" | "projects" | "experts" | "references" | "certifications";
+
+export type SearchItem = {
+  id: string;
+  kind: SearchKind | string;
+  title: string;
+  subtitle: string | null;
+  /** Route du frontend où ouvrir le résultat. */
+  url: string;
+  /** 1 pour une correspondance textuelle exacte, sinon la proximité sémantique (0–1). */
+  score: number;
+  excerpt: string | null;
+};
+
+export type SearchGroup = { kind: SearchKind | string; label: string; items: SearchItem[] };
+
+export type SearchResults = {
+  query: string;
+  semantic: boolean;
+  groups: SearchGroup[];
+  total: number;
+};
+
 // --- Exigences, éligibilité, questions (Phase 7) ---
 
 export type RequirementCategory =
