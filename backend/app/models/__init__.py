@@ -1,5 +1,13 @@
 # Importer ici CHAQUE modèle pour qu'Alembic les voie lors de l'autogénération.
 from app.models.analysis import TenderAnalysis, TenderCriterion
+from app.models.application import (
+    AppDocStatus,
+    Application,
+    ApplicationDocument,
+    ApplicationSection,
+    ApplicationStatus,
+    SectionStatus,
+)
 from app.models.audit import AuditLog
 from app.models.base import Base
 from app.models.chunk import ChunkOwnerKind, DocumentChunk
@@ -34,6 +42,7 @@ from app.models.requirement import (
     TenderRequirement,
 )
 from app.models.scoring import DecisionKind, TenderDecision, TenderScore, TenderStatusHistory
+from app.models.template import DocumentType, SectionSource, Template
 from app.models.tender import (
     DownloadStatus,
     SearchProfile,
@@ -49,6 +58,11 @@ from app.models.user import User
 
 __all__ = [
     "CODE_PREFIX",
+    "AppDocStatus",
+    "Application",
+    "ApplicationDocument",
+    "ApplicationSection",
+    "ApplicationStatus",
     "AuditLog",
     "Base",
     "Certification",
@@ -62,6 +76,7 @@ __all__ = [
     "DocumentChunk",
     "DocumentKind",
     "DocumentStatus",
+    "DocumentType",
     "DocumentVersion",
     "DownloadStatus",
     "Expert",
@@ -77,11 +92,14 @@ __all__ = [
     "RequirementCategory",
     "RequirementStatus",
     "SearchProfile",
+    "SectionSource",
+    "SectionStatus",
     "Skill",
     "SkillCategory",
     "SourceKind",
     "Technology",
     "TechnologyCategory",
+    "Template",
     "Tender",
     "TenderAnalysis",
     "TenderCriterion",

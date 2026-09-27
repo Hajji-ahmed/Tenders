@@ -16,6 +16,7 @@ from app.models.document import ExtractionStatus
 
 if TYPE_CHECKING:
     from app.models.analysis import TenderAnalysis, TenderCriterion
+    from app.models.application import Application
     from app.models.question import Question
     from app.models.requirement import TenderRequirement
     from app.models.scoring import TenderDecision, TenderScore, TenderStatusHistory
@@ -196,6 +197,10 @@ class Tender(UUIDMixin, TimestampMixin, Base):
         cascade="all, delete-orphan",
         passive_deletes=True,
         order_by="Question.created_at",
+    )
+    # Phase 9 (models/application) : le dossier de candidature préparé pour cette fiche (un seul).
+    application: Mapped["Application | None"] = relationship(
+        back_populates="tender", cascade="all, delete-orphan", passive_deletes=True, uselist=False
     )
 
     @property
