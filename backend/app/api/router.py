@@ -2,6 +2,7 @@ from fastapi import APIRouter
 
 from app.api.v1 import (
     analysis,
+    applications,
     auth,
     company,
     documents,
@@ -35,4 +36,5 @@ api_router.include_router(analysis.router)
 api_router.include_router(requirements.router)
 api_router.include_router(questions.router)
 api_router.include_router(templates.router)
+api_router.include_router(applications.router)
 api_router.include_router(tenders.router)
