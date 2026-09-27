@@ -372,6 +372,93 @@ export type AnalysisCriterion = {
   source_page: number | null;
 };
 
+// --- Candidature (Phase 9) ---
+
+export type DocumentTypeKey =
+  | "presentation"
+  | "lettre_candidature"
+  | "offre_technique"
+  | "methodologie"
+  | "comprehension_besoin"
+  | "organisation_planning"
+  | "equipe"
+  | "cv"
+  | "references"
+  | "declaration";
+
+export type SectionSpec = {
+  key: string;
+  title: string;
+  instructions: string;
+  max_words: number;
+  requires: string[];
+};
+
+export type Template = Timestamps & {
+  id: string;
+  name: string;
+  document_type: DocumentTypeKey;
+  description: string | null;
+  sections: SectionSpec[];
+  language: string;
+  version: number;
+  is_default: boolean;
+  repeat_for: string | null;
+  section_count: number;
+};
+
+export type ApplicationStatus =
+  | "draft"
+  | "generating"
+  | "review"
+  | "validated"
+  | "ready"
+  | "submitted"
+  | "archived";
+export type AppDocStatus = "pending" | "generating" | "draft" | "validated" | "rejected" | "failed";
+export type SectionStatus = "generated" | "edited" | "validated" | "rejected";
+
+export type ApplicationSection = {
+  id: string;
+  key: string;
+  title: string;
+  position: number;
+  content_md: string | null;
+  status: SectionStatus;
+  /** Extraits cités par la génération, même forme que les preuves d'éligibilité. */
+  sources: Evidence[];
+  /** Ce que le modèle n'a pas trouvé et n'a pas inventé. */
+  missing_info: string[];
+  comment: string | null;
+  prompt_version: string | null;
+  model: string | null;
+  generated_at: string | null;
+};
+
+export type ApplicationDocument = Timestamps & {
+  id: string;
+  application_id: string;
+  template_id: string | null;
+  document_type: DocumentTypeKey;
+  title: string;
+  status: AppDocStatus;
+  current_version: number;
+  /** Avertissements du garde anti-invention (RB-005). */
+  warnings: string[];
+  error: string | null;
+  has_export: boolean;
+  sections: ApplicationSection[];
+};
+
+export type Application = Timestamps & {
+  id: string;
+  tender_id: string;
+  tender_title: string;
+  status: ApplicationStatus;
+  submitted_at: string | null;
+  documents: ApplicationDocument[];
+};
+
 // --- Recherche interne (Phase 8, Module 18) ---
 
 export type SearchKind = "tenders" | "documents" | "projects" | "experts" | "references" | "certifications";
