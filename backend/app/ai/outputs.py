@@ -94,6 +94,20 @@ class RequirementsOutput(BaseModel):
     requirements: list[RequirementOutput] = Field(default_factory=list)
 
 
+class SectionOutput(BaseModel):
+    """Une section rédigée (Phase 9) : le texte, les sources sur lesquelles il s'appuie, et ce qui a
+    manqué pour l'écrire — signalé plutôt qu'inventé (RB-005)."""
+
+    content_md: str = Field(description="La section en Markdown, en français, sans titre de niveau 1")
+    used_sources: list[str] = Field(
+        default_factory=list, description="Identifiants des extraits utilisés : « S1 », « S2 »…"
+    )
+    missing_info: list[str] = Field(
+        default_factory=list,
+        description="Données absentes, telles qu'écrites dans le texte sous « [À COMPLÉTER : …] »",
+    )
+
+
 class EligibilityJudgement(BaseModel):
     """Jugement d'une exigence à partir d'extraits de la base documentaire (Phase 8.4). Toute
     conformité doit citer les extraits qui la prouvent : sans citation vérifiable, elle est refusée."""
