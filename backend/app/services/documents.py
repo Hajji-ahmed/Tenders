@@ -26,6 +26,7 @@ from app.models.document import (
     DocumentVersion,
     ExtractionStatus,
 )
+from app.models.job import Job
 from app.services.company import CompanyService
 from app.services.jobs import JobService
 
@@ -90,10 +91,10 @@ class DocumentService:
         self.user_id = user_id
         self.author = author
 
-    def enqueue_indexing(self, doc: CompanyDocument) -> None:
+    def enqueue_indexing(self, doc: CompanyDocument) -> Job:
         """Le document entre dans la base de connaissances (Phase 8) : extraction, découpage et
         vectorisation en tâche de fond. `JobService.enqueue` commite — le worker doit voir la ligne."""
-        JobService.enqueue(
+        return JobService.enqueue(
             self.db,
             INDEX_JOB,
             entity_kind=ENTITY_KIND,

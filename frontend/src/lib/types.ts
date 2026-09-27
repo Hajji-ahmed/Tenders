@@ -147,6 +147,8 @@ export type CompanyDocument = Timestamps & {
   description: string | null;
   tags: string[];
   extraction_status: ExtractionStatus;
+  /** Pages lues à l'indexation ; `null` tant que le document n'est pas entré dans la base de connaissances. */
+  page_count: number | null;
   is_expired: boolean;
   is_usable: boolean;
 };
@@ -411,10 +413,23 @@ export type RequirementStatus = "CONFORME" | "A_VERIFIER" | "NON_CONFORME" | "IN
 export type Priority = "CRITIQUE" | "IMPORTANTE" | "FACULTATIVE";
 
 /** Élément du profil retenu par le moteur d'éligibilité (certification, document, expert, réponse…). */
+export type EvidenceKind =
+  | "certification"
+  | "technology"
+  | "skill"
+  | "expert"
+  | "project"
+  | "document"
+  | "answer"
+  | "chunk";
+
 export type Evidence = {
-  kind: "certification" | "technology" | "skill" | "expert" | "project" | "document" | "answer" | "chunk";
+  kind: EvidenceKind;
   id: string;
   label: string;
+  /** Extrait (`chunk`) : la pièce d'où il vient, à ouvrir depuis la fiche. */
+  document_id?: string | null;
+  page?: number | null;
 };
 
 export type TenderRequirement = {

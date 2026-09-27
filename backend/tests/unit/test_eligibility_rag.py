@@ -126,6 +126,8 @@ def test_a_cited_document_makes_the_requirement_compliant(db, company, base):
     evidence = req.evidence[0]
     assert evidence["kind"] == "chunk" and evidence["label"] == "ISO-27001.pdf p. 1"
     assert evidence["id"]  # identifiant du morceau : la preuve est retrouvable
+    # la pièce d'où vient l'extrait, pour l'ouvrir à la bonne page depuis la fiche (8.5)
+    assert evidence["document_id"] == str(base["iso"].id) and evidence["page"] == 1
     prompt = _judge_calls(llm)[0]["user"]
     assert "[S1] (ISO-27001.pdf p. 1)" in prompt and ISO_TEXT[:40] in prompt
 

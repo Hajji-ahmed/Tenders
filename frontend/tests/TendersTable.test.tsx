@@ -17,7 +17,10 @@ const calls: string[] = [];
 
 function render(ui: React.ReactElement) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return baseRender(<QueryClientProvider client={client}>{ui}</QueryClientProvider>);
+  const wrapper = ({ children }: { children: React.ReactNode }) => (
+    <QueryClientProvider client={client}>{children}</QueryClientProvider>
+  );
+  return baseRender(ui, { wrapper });
 }
 
 beforeEach(() => {

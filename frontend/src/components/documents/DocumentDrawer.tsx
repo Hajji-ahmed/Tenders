@@ -1,10 +1,12 @@
 "use client";
 
-import { Archive, Download, FilePlus2, History, Pencil } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { Archive, BrainCircuit, Download, FilePlus2, History, Pencil, RefreshCw } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
+import { JobProgress } from "@/components/jobs/JobProgress";
 import { EntityDialog, type EntityValues, type FieldSpec } from "@/components/common/EntityDialog";
 import { formatDate, StatusBadge } from "@/components/documents/DocumentsTable";
 import { NewVersionDialog } from "@/components/documents/NewVersionDialog";
@@ -16,13 +18,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { CATEGORY_LABELS, CATEGORY_OPTIONS, documentDownloadUrl, fileKind, formatBytes } from "@/lib/documents";
 import {
   type DocumentUpdate,
+  documentKeys,
   useArchiveDocument,
   useDocument,
   useDocumentVersions,
   useNewVersion,
+  useReindexDocument,
   useUpdateDocument,
 } from "@/lib/queries/documents";
-import type { CompanyDocument } from "@/lib/types";
+import type { CompanyDocument, Job } from "@/lib/types";
 
 type Props = {
   /** Document affiché ; `null` = tiroir fermé. */
@@ -48,15 +52,48 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
   );
 }
 
+/** État de l'indexation, en clair : c'est elle qui rend un document citable comme preuve. */
+function indexingState(doc: CompanyDocument): { label: string; variant: "success" | "destructive" | "muted" } {
+  switch (doc.extraction_status) {
+    case "done":
+      return { label: "Indexé", variant: "success" };
+    case "failed":
+      return { label: "Indexation impossible", variant: "destructive" };
+    case "skipped":
+      return { label: "Non indexé", variant: "muted" };
+    default:
+      return { label: "Indexation en attente", variant: "muted" };
+  }
+}
+
 function Details({ doc, onClose }: { doc: CompanyDocument; onClose: () => void }) {
   const versions = useDocumentVersions(doc.id);
   const update = useUpdateDocument();
   const newVersion = useNewVersion();
   const archive = useArchiveDocument();
+  const reindexDoc = useReindexDocument();
+  const qc = useQueryClient();
   const [editing, setEditing] = useState(false);
   const [versioning, setVersioning] = useState(false);
   const [archiving, setArchiving] = useState(false);
+  const [job, setJob] = useState<Job | null>(null);
   const active = doc.status !== "archived";
+  const indexing = indexingState(doc);
+
+  async function reindex() {
+    try {
+      setJob(await reindexDoc.mutateAsync(doc.id));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Impossible de lancer l'indexation.");
+    }
+  }
+
+  function onIndexed(settled: Job) {
+    setJob(null);
+    if (settled.status === "failed") toast.error(settled.error ?? "L'indexation a échoué.");
+    else toast.success("Document réindexé");
+    void qc.invalidateQueries({ queryKey: documentKeys.all }); // statut et pages repartent du serveur
+  }
 
   async function saveMeta(values: EntityValues) {
     await update.mutateAsync({ id: doc.id, values: values as DocumentUpdate });
@@ -143,6 +180,32 @@ function Details({ doc, onClose }: { doc: CompanyDocument; onClose: () => void }
             <code className="text-xs text-muted-foreground">{doc.sha256.slice(0, 16)}…</code>
           </Row>
         </dl>
+
+        <Separator />
+
+        <section aria-labelledby="indexing-title" className="space-y-2">
+          <h3 id="indexing-title" className="flex items-center gap-2 text-sm font-semibold text-brand-green-dark">
+            <BrainCircuit aria-hidden className="size-4 text-brand-blue" />
+            Base de connaissances
+          </h3>
+          {job && <JobProgress jobId={job.id} onSettled={onIndexed} />}
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant={indexing.variant}>{indexing.label}</Badge>
+            {doc.page_count !== null && (
+              <span className="text-xs text-muted-foreground">
+                {doc.page_count} page{doc.page_count > 1 ? "s" : ""} lue{doc.page_count > 1 ? "s" : ""}
+              </span>
+            )}
+            <Button variant="outline" size="sm" className="ml-auto" onClick={reindex} disabled={job !== null}>
+              <RefreshCw />
+              Réindexer
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Un document indexé peut être cité comme preuve d&apos;éligibilité et retrouvé par la recherche
+            interne. {!doc.is_usable && "Expiré ou archivé, il reste consultable mais n'est plus cité."}
+          </p>
+        </section>
 
         <Separator />
 

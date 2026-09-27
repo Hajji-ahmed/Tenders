@@ -195,6 +195,21 @@ def test_delete_archives_and_excludes_from_usable(auth_client, company):
     assert r.status_code == 409  # un document archivé ne reçoit plus de version
 
 
+def test_reindex_enqueues_the_indexing_job(auth_client, company, db, run_jobs_inline, fake_embeddings):
+    """Reprendre un document dans la base de connaissances : après une extraction en échec, ou pour
+    un document déposé avant la Phase 8."""
+    doc = _upload(auth_client, "note.txt", b"InnoSustain, note de capacites.", "text/plain", category="autre")
+    assert doc["extraction_status"] == "done" and doc["page_count"] == 1  # indexé dès l'envoi (8.1)
+
+    r = auth_client.post(f"{DOCS}/{doc['id']}/reindex")
+    assert r.status_code == 202, r.text
+    assert r.json()["type"] == "index_document" and r.json()["entity_id"] == doc["id"]
+
+    after = auth_client.get(f"{DOCS}/{doc['id']}").json()
+    assert after["extraction_status"] == "done" and after["page_count"] == 1
+    assert auth_client.post(f"{DOCS}/{uuid.uuid4()}/reindex").status_code == 404
+
+
 def test_actions_are_audited(auth_client, company, db, user):
     did = _upload(auth_client, "kbis.pdf", b"%PDF-1.4 kbis", PDF, category="administratif")["id"]
     auth_client.patch(f"{DOCS}/{did}", json={"description": "Kbis"})

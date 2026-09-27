@@ -4,11 +4,11 @@ import { Asterisk, CircleAlert, Pencil, Sparkles } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { NativeSelect } from "@/components/common/NativeSelect";
+import { EvidencePopover } from "@/components/tenders/EvidencePopover";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
-  EVIDENCE_LABELS,
   PRIORITY_LABELS,
   REQUIREMENT_CATEGORY_LABELS,
   REQUIREMENT_CATEGORY_OPTIONS,
@@ -17,7 +17,6 @@ import {
 } from "@/lib/requirements";
 import type {
   EligibilitySummary,
-  Evidence,
   RequirementCategory,
   RequirementStatus,
   RequirementUpdate,
@@ -43,24 +42,6 @@ function Source({ req }: { req: TenderRequirement }) {
     >
       {label}
     </span>
-  );
-}
-
-/** Éléments du profil retenus par le moteur (les liens vers la pièce ou l'entité arrivent en 8.5). */
-function EvidenceChips({ evidence }: { evidence: Evidence[] }) {
-  if (evidence.length === 0) return null;
-  return (
-    <ul className="flex flex-wrap gap-1" aria-label="Preuves retenues">
-      {evidence.map((e) => (
-        <li
-          key={`${e.kind}-${e.id}`}
-          className="inline-flex items-center gap-1 rounded-md bg-brand-green-tint px-1.5 py-0.5 text-xs text-brand-green-dark"
-          title={EVIDENCE_LABELS[e.kind] ?? e.kind}
-        >
-          {e.label}
-        </li>
-      ))}
-    </ul>
   );
 }
 
@@ -232,7 +213,7 @@ export function RequirementsTable({ requirements, summary, onUpdate, busy = fals
                   ) : (
                     <p>—</p>
                   )}
-                  <EvidenceChips evidence={req.evidence} />
+                  <EvidencePopover code={req.code} evidence={req.evidence} />
                 </TableCell>
               </TableRow>
             );

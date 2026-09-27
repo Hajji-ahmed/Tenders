@@ -3,7 +3,14 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { api } from "@/lib/api";
-import type { CompanyDocument, DocumentCategory, DocumentStatus, DocumentVersion, Page } from "@/lib/types";
+import type {
+  CompanyDocument,
+  DocumentCategory,
+  DocumentStatus,
+  DocumentVersion,
+  Job,
+  Page,
+} from "@/lib/types";
 
 export type DocumentFilters = {
   category?: DocumentCategory;
@@ -91,6 +98,13 @@ export function useNewVersion() {
     mutationFn: ({ id, form }: { id: string; form: FormData }) =>
       api<CompanyDocument>(`/documents/${id}/versions`, { method: "POST", body: form }),
     onSuccess: () => invalidate(),
+  });
+}
+
+/** POST /documents/{id}/reindex — relance l'indexation dans la base de connaissances (job, 202). */
+export function useReindexDocument() {
+  return useMutation({
+    mutationFn: (id: string) => api<Job>(`/documents/${id}/reindex`, { method: "POST" }),
   });
 }
 

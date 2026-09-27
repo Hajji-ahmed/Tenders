@@ -69,6 +69,10 @@ class Evidence(BaseModel):
     kind: Literal["certification", "technology", "skill", "expert", "project", "document", "answer", "chunk"]
     id: str
     label: str
+    # Extraits (kind="chunk") : `id` est le morceau, `document_id` la pièce d'où il vient — c'est elle
+    # que l'interface ouvre (Phase 8.5), à la page citée.
+    document_id: str | None = None
+    page: int | None = None
 
 
 class Judgement(BaseModel):
@@ -412,7 +416,16 @@ class EligibilityEngine:
         # Rien n'a été trouvé : ne pas afficher comme preuves des documents qui ne prouvent rien.
         evidence = list(rules.evidence)
         if status != S.INFO_MANQUANTE:
-            evidence += [Evidence(kind="chunk", id=str(h.chunk_id), label=h.source) for h in cited]
+            evidence += [
+                Evidence(
+                    kind="chunk",
+                    id=str(h.chunk_id),
+                    label=h.source,
+                    document_id=str(h.owner_id),
+                    page=h.page,
+                )
+                for h in cited
+            ]
         return Judgement(status=status, justification=justification, evidence=evidence)
 
     # --- évaluation d'une fiche ----------------------------------------------------------------
