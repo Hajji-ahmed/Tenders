@@ -45,6 +45,15 @@ class CompanyService:
         return company
 
     @staticmethod
+    def get_profile(db: Session) -> CompanyProfile:
+        """Le profil de l'entreprise unique, jamais nul (créé au besoin par `get_or_create`)."""
+        company = CompanyService.get_or_create(db)
+        if company.profile is None:  # ceinture : `get_or_create` vient de le poser
+            company.profile = CompanyProfile()
+            db.flush()
+        return company.profile
+
+    @staticmethod
     def counts(db: Session, company: Company) -> dict[str, int]:
         result: dict[str, int] = {}
         for name, model in _COUNTED.items():
@@ -61,7 +70,7 @@ class CompanyService:
         company = CompanyService.get_or_create(db)
         fields = dict(data)
         if "positioning" in fields:
-            company.profile.positioning = fields.pop("positioning")
+            CompanyService.get_profile(db).positioning = fields.pop("positioning")
         for key, value in fields.items():
             setattr(company, key, value)
         db.flush()

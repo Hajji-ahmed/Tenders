@@ -24,6 +24,7 @@ from app.models import User
 from app.models.document import CompanyDocument, DocumentCategory, DocumentStatus
 from app.schemas.common import Page
 from app.schemas.document import DocumentOut, DocumentUpdate, DocumentVersionOut, clean_tags
+from app.schemas.job import JobOut
 from app.services.company import CompanyService
 from app.services.documents import ALLOWED_MIMES, DocumentService
 
@@ -201,6 +202,16 @@ def download_document(document_id: UUID, db: Session = Depends(get_db)) -> Respo
         media_type=doc.mime_type,
         headers={"Content-Disposition": content_disposition(download_name(doc))},
     )
+
+
+@router.post("/{document_id}/reindex", response_model=JobOut, status_code=202)
+def reindex_document(
+    document_id: UUID, db: Session = Depends(get_db), user: User = Depends(get_current_user)
+):
+    """Relance l'indexation (extraction, découpage, vectorisation) : après une extraction en échec,
+    ou quand on veut reprendre un document déposé avant la base de connaissances."""
+    doc = _get_document(db, document_id)
+    return _service(db, user).enqueue_indexing(doc)
 
 
 @router.delete("/{document_id}", status_code=204)

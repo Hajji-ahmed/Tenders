@@ -331,6 +331,8 @@ class EvidenceOut(BaseModel):
     kind: str
     id: str
     label: str
+    document_id: str | None = None  # extrait : la pièce d'où il vient (ouverte par l'interface)
+    page: int | None = None
 
 
 class RequirementOut(BaseModel):

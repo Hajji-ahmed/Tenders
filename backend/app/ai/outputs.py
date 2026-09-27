@@ -5,7 +5,7 @@ from datetime import date
 
 from pydantic import BaseModel, Field
 
-from app.models.requirement import Priority, RequirementCategory
+from app.models.requirement import Priority, RequirementCategory, RequirementStatus
 
 
 class TenderCandidate(BaseModel):
@@ -92,6 +92,20 @@ class RequirementOutput(BaseModel):
 
 class RequirementsOutput(BaseModel):
     requirements: list[RequirementOutput] = Field(default_factory=list)
+
+
+class EligibilityJudgement(BaseModel):
+    """Jugement d'une exigence à partir d'extraits de la base documentaire (Phase 8.4). Toute
+    conformité doit citer les extraits qui la prouvent : sans citation vérifiable, elle est refusée."""
+
+    status: RequirementStatus = Field(
+        description="CONFORME seulement si les extraits le prouvent ; sinon A_VERIFIER, "
+        "NON_CONFORME (les extraits montrent que la condition n'est pas remplie) ou INFO_MANQUANTE"
+    )
+    justification: str = Field(description="Une ou deux phrases factuelles, en français")
+    evidence_refs: list[str] = Field(
+        default_factory=list, description="Identifiants des extraits cités : « S1 », « S3 »…"
+    )
 
 
 class QuestionOutput(BaseModel):

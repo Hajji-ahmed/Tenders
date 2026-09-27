@@ -26,10 +26,13 @@ from app.models.document import (
     DocumentVersion,
     ExtractionStatus,
 )
+from app.models.job import Job
 from app.services.company import CompanyService
+from app.services.jobs import JobService
 
 ENTITY_KIND = "company_document"
 STORAGE_PREFIX = "company"
+INDEX_JOB = "index_document"
 
 # MIME autorisé -> extension attendue (CdC §13 : PDF, DOCX, XLSX, TXT, ZIP).
 ALLOWED_MIMES: dict[str, str] = {
@@ -88,6 +91,18 @@ class DocumentService:
         self.user_id = user_id
         self.author = author
 
+    def enqueue_indexing(self, doc: CompanyDocument) -> Job:
+        """Le document entre dans la base de connaissances (Phase 8) : extraction, découpage et
+        vectorisation en tâche de fond. `JobService.enqueue` commite — le worker doit voir la ligne."""
+        return JobService.enqueue(
+            self.db,
+            INDEX_JOB,
+            entity_kind=ENTITY_KIND,
+            entity_id=doc.id,
+            kind=ENTITY_KIND,
+            document_id=str(doc.id),
+        )
+
     def upload(
         self, *, filename: str, data: bytes, content_type: str, category: DocumentCategory, **meta
     ) -> CompanyDocument:
@@ -139,6 +154,7 @@ class DocumentService:
             user_id=self.user_id,
         )
         self.db.flush()
+        self.enqueue_indexing(doc)
         return doc
 
     def new_version(
@@ -177,6 +193,7 @@ class DocumentService:
             user_id=self.user_id,
         )
         self.db.flush()
+        self.enqueue_indexing(doc)  # le texte a changé : les morceaux sont remplacés
         return doc
 
     def versions(self, doc: CompanyDocument) -> list[DocumentVersion]:

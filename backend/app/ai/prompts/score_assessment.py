@@ -3,6 +3,7 @@ le score : il lit les sous-scores déterministes, la fiche de l'appel d'offres e
 l'entreprise, puis explique, nuance (± 10 points au plus) et liste forces et faiblesses."""
 
 from app.models import Company, Tender
+from app.services.company_facts import from_company
 from app.services.scoring import LABELS, ScoreResult
 
 PROMPT_VERSION = "v1"
@@ -29,23 +30,14 @@ def _lines(title: str, items: list[str]) -> str:
 
 
 def company_summary(company: Company) -> str:
-    valid = [c.name for c in company.certifications if c.is_valid]
+    """Les faits du profil (`CompanyFacts`, source unique — Phase 8), complétés du résumé IA quand il
+    existe et des certifications expirées, utiles ici pour nuancer le score."""
+    facts = from_company(company, [])
+    parts = [facts.as_text()]
+    if company.profile and company.profile.ai_summary:
+        parts.insert(0, f"Présentation : {company.profile.ai_summary}")
     expired = [c.name for c in company.certifications if not c.is_valid]
-    projects = [f"{p.title}" + (f" ({p.sector})" if p.sector else "") for p in company.projects]
-    parts = [
-        f"Entreprise : {company.trade_name or company.legal_name or '(sans nom)'}"
-        + (f", {company.country}" if company.country else ""),
-    ]
-    if company.profile and (company.profile.ai_summary or company.profile.positioning):
-        parts.append(f"Positionnement : {company.profile.ai_summary or company.profile.positioning}")
-    parts += [
-        _lines("Secteurs", company.sectors),
-        _lines("Compétences", [s.name for s in company.skills]),
-        _lines("Technologies", [t.name for t in company.technologies]),
-        _lines("Certifications valides", valid),
-        _lines("Certifications expirées", expired),
-        _lines("Projets réalisés", projects),
-    ]
+    parts.append(_lines("Certifications expirées", expired))
     return "\n".join(parts)
 
 

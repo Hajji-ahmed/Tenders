@@ -98,8 +98,8 @@ describe("RequirementsTable", () => {
     expect(within(rows[0]).getByText("Administrative")).toBeInTheDocument();
     expect(within(rows[0]).getByText("RC-27-2026.pdf — p. 2")).toBeInTheDocument();
     expect(rows[0]).toHaveTextContent("Document disponible : Attestation fiscale 2026");
-    const evidence = within(rows[0]).getByRole("list", { name: /preuves/i });
-    expect(within(evidence).getByTitle("Document")).toHaveTextContent("Attestation fiscale 2026");
+    expect(within(rows[0]).getByRole("button", { name: /1 preuve/i })).toBeInTheDocument();
+    expect(within(rows[1]).queryByRole("button", { name: /preuve/i })).not.toBeInTheDocument();
     expect(within(rows[0]).getByTitle(/obligatoire/i)).toBeInTheDocument();
 
     expect(within(rows[1]).getByText("Information manquante")).toBeInTheDocument();

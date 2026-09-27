@@ -28,6 +28,7 @@ class DocumentOut(BaseModel):
     description: str | None
     tags: list[str]
     extraction_status: ExtractionStatus
+    page_count: int | None  # pages lues à l'indexation (Phase 6)
     is_expired: bool  # date d'expiration dépassée (propriété du modèle)
     is_usable: bool  # RB-007 : statut `valid` ET non expiré — seul un tel document alimente les candidatures
     created_at: datetime

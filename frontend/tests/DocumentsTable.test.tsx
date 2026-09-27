@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+﻿import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
@@ -21,6 +21,7 @@ function doc(over: Partial<CompanyDocument>): CompanyDocument {
     description: null,
     tags: [],
     extraction_status: "pending",
+    page_count: 2,
     is_expired: false,
     is_usable: true,
     created_at: "2026-09-01T00:00:00Z",
@@ -64,3 +65,4 @@ describe("DocumentsTable", () => {
     expect(screen.getByText(/aucun document/i)).toBeInTheDocument();
   });
 });
+

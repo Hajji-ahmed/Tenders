@@ -44,6 +44,22 @@ class JobService:
             raise ServiceUnavailableError("File de traitement indisponible, réessayez dans un instant") from e
         return job
 
+    @classmethod
+    def enqueue_once(
+        cls, db: Session, job_type: str, *, entity_kind: str | None, entity_id: UUID | None, **kwargs
+    ) -> Job | None:
+        """Enfile le job seulement si aucun du même type n'attend déjà son tour (ou ne tourne).
+
+        Pour les tâches qui recalculent un état complet — le résumé du profil, par exemple : dix
+        modifications d'affilée ne doivent pas produire dix jobs, le suivant relira tout de toute façon.
+        Renvoie `None` quand un job en cours rend l'appel inutile."""
+        pending = db.scalar(
+            select(Job).where(Job.type == job_type, Job.status.in_([JobStatus.pending, JobStatus.running]))
+        )
+        if pending is not None:
+            return None
+        return cls.enqueue(db, job_type, entity_kind=entity_kind, entity_id=entity_id, **kwargs)
+
     @staticmethod
     def get(db: Session, job_id: UUID) -> Job | None:
         return db.get(Job, job_id)
