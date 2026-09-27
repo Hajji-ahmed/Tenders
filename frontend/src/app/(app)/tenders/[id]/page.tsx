@@ -6,6 +6,7 @@ import { useParams, usePathname, useRouter, useSearchParams } from "next/navigat
 import { Suspense, useState } from "react";
 import { toast } from "sonner";
 
+import { ApplicationPanel } from "@/components/applications/ApplicationPanel";
 import { JobProgress } from "@/components/jobs/JobProgress";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { DecisionButtons } from "@/components/tenders/DecisionButtons";
@@ -135,14 +136,6 @@ function Overview({ tender }: { tender: TenderDetail }) {
         </Card>
       </div>
     </div>
-  );
-}
-
-function Placeholder({ label }: { label: string }) {
-  return (
-    <p className="rounded-xl border border-dashed border-brand-green/30 bg-card px-6 py-10 text-center text-sm text-muted-foreground">
-      {label} — disponible à une prochaine étape.
-    </p>
   );
 }
 
@@ -280,7 +273,9 @@ function TenderPageInner() {
         <TabsContent value="questions" className="pt-4">
           <QuestionsSection tenderId={id} onAnswered={() => void score.refetch()} />
         </TabsContent>
-        <TabsContent value="application" className="pt-4"><Placeholder label="Dossier de candidature" /></TabsContent>
+        <TabsContent value="application" className="pt-4">
+          <ApplicationPanel tender={t} onChanged={() => void tender.refetch()} />
+        </TabsContent>
         <TabsContent value="history" className="pt-4">
           {history.isPending ? <Skeleton className="h-32 w-full" /> : <StatusTimeline entries={history.data ?? []} />}
         </TabsContent>

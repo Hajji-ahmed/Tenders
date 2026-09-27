@@ -13,6 +13,7 @@ from sqlalchemy import select
 from app.core.db import SessionLocal
 from app.core.security import hash_password
 from app.models import User
+from app.services.templates import seed_templates
 
 MIN_PASSWORD_LENGTH = 8
 
@@ -57,6 +58,17 @@ def set_password(email: str) -> None:
         print(f"Mot de passe de {email} mis à jour")
 
 
+def seed_document_templates() -> None:
+    """Pose les modèles de documents manquants ; les plans déjà retouchés ne sont pas écrasés."""
+    with SessionLocal() as db:
+        created = seed_templates(db)
+        db.commit()
+        if created:
+            print(f"{len(created)} modèle(s) créé(s) : " + ", ".join(t.name for t in created))
+        else:
+            print("Aucun modèle à créer (tous les types de documents en ont déjà un)")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(prog="tender-ai")
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -73,6 +85,8 @@ def main() -> None:
     p_en = sub.add_parser("enable-user", help="Réactiver un utilisateur")
     p_en.add_argument("--email", required=True)
 
+    sub.add_parser("seed-templates", help="Créer les modèles de documents de candidature manquants")
+
     args = parser.parse_args()
     if args.cmd == "create-user":
         create_user(args.email)
@@ -82,6 +96,8 @@ def main() -> None:
         set_active(args.email, False)
     elif args.cmd == "enable-user":
         set_active(args.email, True)
+    elif args.cmd == "seed-templates":
+        seed_document_templates()
 
 
 if __name__ == "__main__":

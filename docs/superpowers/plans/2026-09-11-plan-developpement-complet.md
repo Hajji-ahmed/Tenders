@@ -3064,6 +3064,16 @@ class KnowledgeBase:
 
 # PHASE 9 — Génération des documents de candidature (S10)
 
+> **Écarts constatés à l'exécution (27/09/2026) — à respecter dans les phases suivantes :**
+> - `Template.sections` porte `requires` (`SectionSource`) : **c'est le plan qui borne le contexte**, pas le service. Une section qui ne demande pas les exigences ne les voit pas. Un document déjà rédigé survit à la suppression de son modèle (`template_id` → `SET NULL`) : une candidature écrite ne dépend pas d'un gabarit qu'on modifie ensuite. Migration `6187dfdcadfc`.
+> - `seed_templates` ne crée que ce qui manque (jamais d'écrasement : un plan retouché appartient à l'utilisateur) ; côté API, modifier le **plan** incrémente `version`, modifier les métadonnées non.
+> - Génération : une section à la fois, `tier="strong"`. Les citations `[S1]` deviennent des `sources` seulement si elles désignent un extrait réellement fourni ; `missing_info` reçoit ce que le modèle n'a pas trouvé, écrit en clair dans le texte (`[À COMPLÉTER : …]`). Une section qui échoue le dit dans son contenu et le document reste `draft` — ce qui est écrit vaut d'être relu ; un document qui échoue ne fait pas échouer le job du dossier.
+> - `FactGuard` : trois corrections venues du réel, toutes contre le bruit. Les référentiels se comparent **exactement** (« ISO 9001 » n'est pas « ISO 14001 ») ; un nom propre ne peut pas enjamber un retour à la ligne (« ### Conclusion\\nNotre solution » donnait « Conclusion Notre ») ; et seul ce qui **ressemble à un organisme** (commune, société, office, agence…) est suspecté d'être un client, sinon « Luminaires LED » ou « Attestation CNSS » noyaient le relecteur. Un garde qu'on cesse de lire ne garde rien.
+> - Export DOCX : la mention « généré avec assistance IA » n'apparaît **que sur un document validé** (RB-006) ; un brouillon porte à la place « Brouillon — non validé : à relire avant envoi », pour qu'un envoi par mégarde se voie. Le Markdown non reconnu est écrit littéralement plutôt que perdu. `docx.Document` est une fabrique : le type à annoter est `docx.document.Document`.
+> - Dossier : ouverture réservée aux fiches `GO` / `PREPARATION` / `VALIDATION`, idempotente (un second appel rend le dossier existant), et la fiche passe en `PREPARATION` ; un type de document n'est jamais ajouté deux fois ; le dossier passe en `review` dès qu'un document est lisible.
+> - Frontend : `preselectTemplates` coche d'avance ce que le règlement réclame (rapprochement par mots-clés avec `analysis.requested_documents`) plus la lettre de candidature, jamais un type déjà présent. Le popover de preuves de la Phase 8.5 est réutilisé tel quel pour les sources d'une section.
+> - Réel (AO 27/2026, gpt-4.1) : 3 documents rédigés en un job, 0 échec, ~1 460 mots pour l'offre technique, 15 zones à compléter, 5 extraits cités, DOCX de 40 Ko téléchargé. Les manques listés sont exactement ce qu'un humain doit fournir (RC, IF, ICE, CNSS, lieu, date, signataire).
+
 ### Task 9.1 : Modèles templates / applications / documents / sections + migration
 
 **Files:**
