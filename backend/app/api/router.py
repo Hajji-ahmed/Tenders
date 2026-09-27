@@ -14,6 +14,7 @@ from app.api.v1 import (
     search_profiles,
     searches,
     sources,
+    templates,
     tender_documents,
     tenders,
 )
@@ -33,4 +34,5 @@ api_router.include_router(tender_documents.router)
 api_router.include_router(analysis.router)
 api_router.include_router(requirements.router)
 api_router.include_router(questions.router)
+api_router.include_router(templates.router)
 api_router.include_router(tenders.router)
